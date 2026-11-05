@@ -38,4 +38,18 @@ export const dungeons = [
     ],
     enemyPool: ['teng_yao', 'qingtan_yuan'], boss: 'yuandi_gushou',
     clearReward: { stones: [500, 800], herbs: [{ herbId: 'xuerui_lian', count: 2 }, { herbId: 'mengxun', count: 1 }], treasure: { treasureId: 'chitong_ding', chance: 0.1 } } },
+  { id: 'xingyun_yuan', name: '星陨荒原', realmReq: 9, steps: 5, cooldown: 240, scene: 'star_waste',
+    desc: '夜空下的陨坑荒原，星屑如雪，残碑斜立，心魔与星兽潜行其间。',
+    eventPool: [
+      { eventId: 'ev_star_wolf', weight: 2 }, { eventId: 'ev_crystal_guard', weight: 2 }, { eventId: 'ev_wind_eagle', weight: 2 }, { eventId: 'ev_heart_demon', weight: 1 }, { eventId: 'ev_meteor_rain', weight: 2 }, { eventId: 'ev_crater_gas', weight: 2 }, { eventId: 'ev_star_mirage', weight: 1 }, { eventId: 'ev_star_dust', weight: 3 }, { eventId: 'ev_frost_lotus_pool', weight: 2 }, { eventId: 'ev_dream_mushroom_ring', weight: 1 }, { eventId: 'ev_stele_insight', weight: 2 }, { eventId: 'ev_fallen_cultivator', weight: 2 }, { eventId: 'ev_star_spring', weight: 2 },
+    ],
+    enemyPool: ['xingsha_lang', 'yunjing_kui', 'xuanfeng_diao', 'xinmo_ying'], boss: 'xingyun_jiao',
+    clearReward: { stones: [3000, 5000], herbs: [{ herbId: 'xingxie_cao', count: 2 }, { herbId: 'mengxun', count: 1 }], treasure: { treasureId: 'xingyun_jian', chance: 0.12 } } },
+  { id: 'guixu_yunhai', name: '归墟云海', realmReq: 12, steps: 5, cooldown: 300, scene: 'void_sea',
+    desc: '万丈云海之上断岛飘浮，雷云如盖，天光如裂，是飞升前最后的试炼之地。',
+    eventPool: [
+      { eventId: 'ev_cloud_wraith', weight: 2 }, { eventId: 'ev_thunder_soul', weight: 2 }, { eventId: 'ev_inner_demon_sea', weight: 1 }, { eventId: 'ev_thunder_cloud', weight: 2 }, { eventId: 'ev_void_wind', weight: 2 }, { eventId: 'ev_broken_isle', weight: 1 }, { eventId: 'ev_thunder_ore', weight: 3 }, { eventId: 'ev_cloud_lotus', weight: 2 }, { eventId: 'ev_thunder_tide', weight: 2 }, { eventId: 'ev_sky_cache', weight: 2 }, { eventId: 'ev_void_sutra', weight: 1 }, { eventId: 'ev_crane_rest', weight: 2 },
+    ],
+    enemyPool: ['yunhai_sui', 'leijie_canhun', 'xinmo_ying'], boss: 'taichu_leipeng',
+    clearReward: { stones: [10000, 16000], herbs: [{ herbId: 'mengxun', count: 2 }, { herbId: 'xuerui_lian', count: 2 }], treasure: { treasureId: 'bilei_zhu', chance: 0.15 } } },
 ];

@@ -31,4 +31,13 @@ export const techniques = [
     desc: '身如负岳，厚土载物，筋骨坚逾金石。', effect: { stats: { hp: 0.12, def: 0.12 } } },
   { id: 'wuqi_guiyuan', name: '五气归元篇', type: 'heart', element: 'none', rarity: 4, realmReq: 6, price: 6000, maxLevel: 10, upgradeCost: 300,
     desc: '五行之气归于一元，不择根骨，大道至简。', effect: { qiRate: 0.55, qiRatePerLv: 0.025, stats: { hp: 0.05, mp: 0.05 } } },
+  // —— 元婴 / 化神扩展
+  { id: 'xingchen_yinyue', name: '星沉引月篇', type: 'heart', element: 'water', rarity: 4, realmReq: 9, price: 12000, maxLevel: 10, upgradeCost: 600,
+    desc: '夜观星沉，引月华入府，灵气如潮汐盈缩。', effect: { qiRate: 0.6, qiRatePerLv: 0.03, stats: { mp: 0.06 } } },
+  { id: 'jiuxiao_leiyin', name: '九霄雷音剑', type: 'skill', element: 'metal', rarity: 4, realmReq: 9, price: 14000, maxLevel: 10, upgradeCost: 700,
+    desc: '剑出如雷，九霄同鸣，闻者神魂俱震。', effect: { kind: 'damage', power: 2.9, powerPerLv: 0.15, mpCost: 240 } },
+  { id: 'xuanming_hushen', name: '玄溟护身罡', type: 'body', element: 'none', rarity: 4, realmReq: 10, price: 18000, maxLevel: 10, upgradeCost: 800,
+    desc: '引玄溟之水凝为罡气，如深海覆身，万钧不摇。', effect: { stats: { hp: 0.25, def: 0.25 } } },
+  { id: 'guixu_wanxiang', name: '归墟万象诀', type: 'heart', element: 'none', rarity: 4, realmReq: 12, price: 40000, maxLevel: 10, upgradeCost: 1200,
+    desc: '万象归于一虚，虚中自有生灭，不拘根骨。', effect: { qiRate: 0.75, qiRatePerLv: 0.03, stats: { hp: 0.05, mp: 0.08 } } },
 ];

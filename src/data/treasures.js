@@ -14,4 +14,10 @@ export const treasures = [
     stats: { flat: { def: 22, hp: 200 }, pct: {} }, desc: '玄色鳞甲暗纹如夜，刀剑加身，唯闻轻响。' },
   { id: 'zhenhun_yupei', name: '镇魂玉佩', slot: 'charm', rarity: 3, realmReq: 5, price: 2500,
     stats: { flat: { hp: 100 }, pct: {} }, protect: 0.5, desc: '温玉一枚，劫火焚身时护住最后一缕神魂。' },
+  { id: 'xingyun_jian', name: '星陨剑', slot: 'weapon', rarity: 4, realmReq: 9, price: 20000,
+    stats: { flat: { atk: 160 }, pct: { crit: 0.03 } }, desc: '取坠星之核锻成，剑出时天际微亮。' },
+  { id: 'yunhai_hechang', name: '云海鹤氅', slot: 'armor', rarity: 4, realmReq: 9, price: 20000,
+    stats: { flat: { def: 100, hp: 1200 }, pct: {} }, desc: '以云海白鹤之羽织就，披之轻若无物，却挡万钧。' },
+  { id: 'bilei_zhu', name: '避雷珠', slot: 'charm', rarity: 4, realmReq: 11, price: 40000,
+    stats: { flat: { hp: 800 }, pct: {} }, tribResist: 0.2, desc: '珠中一线紫电不灭，天雷临身，先被它引去三分。' },
 ];

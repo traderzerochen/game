@@ -18,4 +18,6 @@ export const recipes = [
     herbs: [{ herbId: 'xuerui_lian', count: 1 }, { herbId: 'longlin_tai', count: 1 }, { herbId: 'huangjing_teng', count: 2 }, { herbId: 'zijing_guo', count: 1 }], yield: 1 },
   { id: 'r_yanshou_dan', pillId: 'yanshou_dan', name: '延寿丹方', tier: 4, realmReq: 6, baseRate: 0.4, stones: 500,
     herbs: [{ herbId: 'mengxun', count: 1 }, { herbId: 'longlin_tai', count: 1 }, { herbId: 'xuerui_lian', count: 1 }, { herbId: 'zijing_guo', count: 2 }], yield: 1 },
+  { id: 'r_ningying_dan', pillId: 'ningying_dan', name: '凝婴丹方', tier: 4, realmReq: 8, baseRate: 0.45, stones: 2000,
+    herbs: [{ herbId: 'xuerui_lian', count: 1 }, { herbId: 'mengxun', count: 1 }, { herbId: 'xingxie_cao', count: 2 }, { herbId: 'longlin_tai', count: 1 }], yield: 1 },
 ];

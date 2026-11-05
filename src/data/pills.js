@@ -8,4 +8,5 @@ export const pills = [
   { id: 'ningshen_dan', name: '凝神丹', realmReq: 0, effect: { type: 'mp', value: 0.4 }, desc: '清心凝神，枯竭的灵力重新涌起。' },
   { id: 'zhuji_dan', name: '固基丹', realmReq: 3, effect: { type: 'tribulation', value: 0.2 }, desc: '药性沉厚，固道基于雷火之前。' },
   { id: 'yanshou_dan', name: '延寿丹', realmReq: 6, effect: { type: 'lifespan', value: 30 }, desc: '夺天地一线生机，延寿三十载。' },
+  { id: 'ningying_dan', name: '凝婴丹', realmReq: 8, effect: { type: 'tribulation', value: 0.25 }, desc: '丹成如露，婴儿初啼，护道心于九重雷火。' },
 ];

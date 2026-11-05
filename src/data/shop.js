@@ -6,6 +6,7 @@ export const shop = {
     { id: 'hanyi_ningbing', price: 600 }, { id: 'muchun_huisheng', price: 700 }, { id: 'chiyu_fentian', price: 1100 },
     { id: 'chengxin_guanshui', price: 1200 }, { id: 'liyan_lianxin', price: 1200 }, { id: 'houkun_zhenyue', price: 1500 },
     { id: 'wuqi_guiyuan', price: 6000 },
+    { id: 'xingchen_yinyue', price: 12000 }, { id: 'jiuxiao_leiyin', price: 14000 }, { id: 'xuanming_hushen', price: 18000 }, { id: 'guixu_wanxiang', price: 40000 },
   ],
   herbs: [
     { id: 'ninglu_cao', price: 6 }, { id: 'chiwen_zhi', price: 6 }, { id: 'qingsui_gen', price: 6 }, { id: 'shitai_ru', price: 6 },
@@ -15,5 +16,6 @@ export const shop = {
     { id: 'qingmang_jian', price: 150 }, { id: 'yunwen_fayi', price: 200 }, { id: 'yinlei_mufu', price: 800 },
     { id: 'chitong_ding', price: 900 }, { id: 'shuanghen_jian', price: 1500 }, { id: 'xuanjia_fayi', price: 2000 },
     { id: 'zhenhun_yupei', price: 2500 },
+    { id: 'xingyun_jian', price: 20000 }, { id: 'yunhai_hechang', price: 20000 }, { id: 'bilei_zhu', price: 40000 },
   ],
 };

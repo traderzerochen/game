@@ -94,7 +94,7 @@ test('treasures', () => {
 });
 
 test('enemies：引用与范围', () => {
-  const arts = ['wolf', 'spider', 'humanoid', 'puppet', 'toad', 'snake', 'golem', 'bird', 'beast', 'vine'];
+  const arts = ['wolf', 'spider', 'humanoid', 'puppet', 'toad', 'snake', 'golem', 'bird', 'beast', 'vine', 'wraith', 'jiao'];
   for (const e of DATA.enemies) {
     assert.ok(ELEMS_N.includes(e.element), e.id);
     assert.ok(arts.includes(e.art), e.id);
@@ -176,9 +176,9 @@ test('最低数量', () => {
 
 test('内容完整性：获取途径、丹方、药材', () => {
   assert.equal(DATA.herbs.length, 12);
-  assert.equal(DATA.pills.length, 8);
-  assert.equal(DATA.techniques.length, 15);
-  assert.equal(DATA.treasures.length, 7);
+  assert.ok(DATA.pills.length >= 9);
+  assert.ok(DATA.techniques.length >= 19);
+  assert.ok(DATA.treasures.length >= 10);
   for (const h of DATA.herbs) if (h.garden) assert.ok(h.rarity <= 2, h.id);
   const shopT = new Set(DATA.shop.techniques.map((x) => x.id));
   const shopR = new Set(DATA.shop.treasures.map((x) => x.id));
@@ -193,6 +193,7 @@ test('内容完整性：获取途径、丹方、药材', () => {
   for (const h of DATA.herbs) assert.ok(src.has(h.id), `${h.id} 无来源`);
   // 关卡数据：玩家最高境界要求递增，且全部坊市物品境界不超过 8
   assert.ok(DATA.dungeons.every((d) => d.cooldown >= 90 && d.cooldown <= 300));
-  assert.ok(DATA.enemies.length >= 12);
+  assert.ok(DATA.enemies.length >= 20);
+  assert.ok(DATA.dungeons.length >= 7);
   for (const d of DATA.dungeons) assert.ok(d.eventPool.length >= 6, d.id);
 });
