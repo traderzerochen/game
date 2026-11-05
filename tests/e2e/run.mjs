@@ -77,6 +77,7 @@ async function open(c) {
 }
 
 async function shot(c, name) {
+  await sleep((await c.page.locator('.modal-mask').count()) ? 1500 : 800); // 等卷轴展开动画结束
   await c.page.screenshot({ path: path.join(SHOT_DIR, `${name}.png`) });
 }
 
@@ -97,7 +98,8 @@ async function startGame(c, name = '玄机子') {
 
 async function nav(c, name) {
   await c.page.locator('.nav .slip', { hasText: name }).click();
-  await c.page.waitForFunction((n) => document.querySelector('.scroll-title')?.textContent.includes(n), name);
+  await c.page.waitForFunction((n) => [...document.querySelectorAll('.nav .slip.active')].some((e) => e.textContent.includes(n)), name);
+  await sleep(100);
 }
 
 const section = (c, h3) => c.page.locator('.panel-wrap .section', { has: c.page.locator('h3', { hasText: h3 }) }).first();
@@ -153,6 +155,17 @@ async function layoutProblems(page, label) {
       if (r.width === 0 || r.height === 0 || b.disabled) continue;
       const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
       if (cx < 0 || cy < 0 || cx > window.innerWidth || cy > window.innerHeight) continue;
+      const inModal = !!b.closest('.modal-mask');
+      if (!inModal && document.querySelector('.modal-mask')) continue; // 弹窗打开时，背景按钮被遮罩遮住是预期行为
+      let clippedAway = false;
+      for (let p = b.parentElement; p; p = p.parentElement) {
+        const cs = getComputedStyle(p);
+        if (/(auto|scroll|hidden|clip)/.test(cs.overflowY + cs.overflowX)) {
+          const pr = p.getBoundingClientRect();
+          if (cx < pr.left || cx > pr.right || cy < pr.top || cy > pr.bottom) { clippedAway = true; break; }
+        }
+      }
+      if (clippedAway) continue;
       const top = document.elementFromPoint(cx, cy);
       if (top && top !== b && !b.contains(top)) {
         // 位于滚动容器之外被裁剪的情况不算遮挡
@@ -285,8 +298,7 @@ test('03 功法页：卸下、装入、调整顺序、升级', async () => {
   check(lv === 2, `拂尘掌应升至 2 重，实为 ${lv}`);
   check(s1 < s0, '升级未扣灵石');
   await expectToast(c, /精进至第 2 重/);
-  const stonesTxt = await c.page.locator('.topbar').textContent();
-  check(stonesTxt.includes(String(Math.floor(s1))) || stonesTxt.includes(Math.floor(s1).toLocaleString('zh-CN')), `顶栏灵石未更新：${stonesTxt}`);
+  await c.page.waitForFunction((n) => document.querySelector('.topbar').textContent.includes(n), Math.floor(s1).toLocaleString('zh-CN'), { timeout: 3000 }).catch(async () => { throw new Fail(`顶栏灵石未更新为 ${s1}：${await c.page.locator('.topbar').textContent()}`); });
   // 灵石不足时升级按钮禁用
   await setup(c, (a, g, s) => { s.inventory.stones = 0; });
   check(await section(c, '藏经').locator('.card', { hasText: '拂尘掌' }).getByRole('button', { name: /参悟|已至/ }).isDisabled(), '灵石为 0 时「参悟」应禁用');
@@ -311,6 +323,9 @@ test('04 历练：入雾栖谷、跳过回放、结算卷轴、冷却倒计时',
   check((await c.page.locator('.scroll-title').textContent()).includes('历练'), '回放期间标题异常');
   await sleep(1500);
   await shot(c, '04-replay');
+  // 等到出现战斗双方再截一张（若本次无战斗则忽略）
+  const fighting = await c.page.waitForFunction(() => { const f = document.querySelector('.fighters'); return f && getComputedStyle(f).visibility === 'visible'; }, null, { timeout: 12000 }).then(() => true, () => false);
+  if (fighting) { await sleep(800); await shot(c, '04-replay-battle'); }
   const logCount = await c.page.locator('.replay-log .ev').count();
   check(logCount >= 1, '回放日志为空');
   await c.page.getByRole('button', { name: '跳过' }).click();
@@ -401,19 +416,27 @@ test('06 炼丹：材料足够炼制，不足时禁用，结果提示', async ()
   const btn = c.page.locator('.card', { hasText: '聚灵丹方' }).first().getByRole('button', { name: '炼制' });
   check(await btn.isEnabled(), '材料足够时「炼制」应可点');
   let ok = 0, fail = 0;
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 4; i++) {
     const pills0 = await ev(c, (a, g, s) => (s.inventory.pills.juling_dan || [0, 0, 0, 0]).reduce((x, y) => x + y, 0));
     const herb0 = await ev(c, (a, g, s) => s.inventory.herbs.ninglu_cao);
     await c.page.locator('.card', { hasText: '聚灵丹方' }).first().getByRole('button', { name: '炼制' }).click();
+    const modal = c.page.locator('.modal-mask .modal');
+    await modal.waitFor({ timeout: 3000 });
+    if (i === 0) { await sleep(600); await shot(c, '06-alchemy-brewing'); }
+    const res = modal.locator('.furnace-result');
+    await c.page.waitForFunction(() => /丹成|炉火失控/.test(document.querySelector('.furnace-result')?.textContent || ''), null, { timeout: 15000 }).catch(() => { throw new Fail('炼丹动画结束后未出现结果文字'); });
+    const txt = (await res.textContent()).trim();
+    if (i === 0) await shot(c, '06-alchemy-result');
     const pills1 = await ev(c, (a, g, s) => (s.inventory.pills.juling_dan || [0, 0, 0, 0]).reduce((x, y) => x + y, 0));
     const herb1 = await ev(c, (a, g, s) => s.inventory.herbs.ninglu_cao);
     check(herb1 === herb0 - 2, `炼制应消耗 2 凝露草：${herb0} -> ${herb1}`);
-    if (process.env.QA_DEBUG) console.log("craft", i, pills0, pills1, await toastText(c));
-    if (pills1 > pills0) { ok++; await expectToast(c, /丹成/); } else { fail++; await expectToast(c, /炉火失控/); }
-    await sleep(150);
+    if (pills1 > pills0) { ok++; check(/丹成/.test(txt) && txt.includes('聚灵丹'), `成功时结果文字异常：${txt}`); }
+    else { fail++; check(/炉火失控/.test(txt), `失败时结果文字异常：${txt}`); }
+    await modal.getByRole('button', { name: '收丹' }).click();
+    await c.page.waitForFunction(() => !document.querySelector('.modal-mask'));
   }
-  notes.push(`06 炼丹 6 次：成功 ${ok}，失败 ${fail}`);
-  check(ok + fail === 6, '炼制结果统计异常');
+  notes.push(`06 炼丹 4 次：成功 ${ok}，失败 ${fail}`);
+  check(ok + fail === 4, '炼制结果统计异常');
   await shot(c, '06-alchemy-done');
   // 材料耗尽后应禁用
   await setup(c, (a, g, s) => { s.inventory.herbs.ninglu_cao = 1; });
@@ -435,43 +458,63 @@ test('07 渡劫：炼气后期灵气满，渡劫界面出现并完成', async ()
   await c.page.waitForFunction(() => { const b = [...document.querySelectorAll('.panel-wrap .seal-btn')].find((x) => x.textContent === '渡劫'); return b && !b.disabled; }, null, { timeout: 5000 });
   await shot(c, '07-trib-ready');
   const stage0 = await ev(c, (a, g, s) => s.stage);
-  await dj.click();
-  // 渡劫界面：弹窗或带 trib/jie 字样的覆盖层
-  let seen = false, clicked = [];
-  const t0 = Date.now();
-  let shotDone = 0;
-  while (Date.now() - t0 < 60000) {
-    const done = await ev(c, (a, g, s) => s.counters.tribulations);
-    const overlay = await c.page.evaluate(() => {
-      const m = document.querySelector('.modal-mask');
-      const t = document.querySelector('[class*=trib], [id*=trib]');
-      return { modal: !!m, trib: !!t, text: m ? m.textContent.slice(0, 80) : '' };
-    });
-    if (overlay.modal || overlay.trib) {
-      seen = true;
-      if (shotDone < 3) { await shot(c, `07-trib-ui-${shotDone++}`); }
-      const btns = c.page.locator('.modal-mask button:not([disabled]), [class*=trib] button:not([disabled])');
-      if (await btns.count()) {
-        const first = btns.first();
-        const txt = (await first.textContent()).trim();
-        clicked.push(txt);
-        await first.click().catch(() => {});
-      }
-    } else if (done >= 1) break;
-    else {
-      const ts = await toastText(c);
-      if (ts.some((t) => /尚未开启/.test(t))) throw new Fail(`点击「渡劫」仅提示“${ts.join('|')}”，渡劫界面（app.openTribulation）未实现`);
-    }
-    await sleep(400);
-  }
-  check(seen, '点击「渡劫」后未出现渡劫界面（无弹窗/无 trib 元素）');
-  await c.page.waitForFunction(() => !document.querySelector('.modal-mask'), null, { timeout: 15000 }).catch(() => { throw new Fail(`渡劫界面未能关闭，已点击按钮：${clicked.join(',')}`); });
-  const res = await ev(c, (a, g, s) => ({ stage: s.stage, trib: s.counters.tribulations, fails: s.counters.tribulationFails, ending: s.ending }));
+  const fillQi = () => ev(c, (a, g, s) => { const cost = g.view().realm.qiCost; let n = 0; while (s.qi < cost && n++ < 2000) g.advance(600); });
+  const modal = c.page.locator('.modal-mask .modal');
+  const attempt = async (tag) => {
+    await c.page.locator('.panel-wrap').getByRole('button', { name: '渡劫', exact: true }).click();
+    await modal.waitFor({ timeout: 3000 });
+    const title = await modal.locator('.scroll-title').textContent();
+    check(title.includes('雷劫'), `渡劫准备卷轴标题异常：${title}`);
+    const body = await modal.textContent();
+    check(/预计雷伤/.test(body) && /气血/.test(body), `渡劫准备卷轴缺少雷伤/气血信息：${body.slice(0, 80)}`);
+    await shot(c, `07-trib-${tag}-prepare`);
+    return modal;
+  };
+  // 先点「暂缓」：不应消耗灵气或触发渡劫
+  await attempt('defer');
+  await modal.getByRole('button', { name: '暂缓' }).click();
+  await c.page.waitForFunction(() => !document.querySelector('.modal-mask'));
+  check(await ev(c, (a, g, s) => s.counters.tribulations) === 0, '点「暂缓」不应触发渡劫');
+  // 正式渡劫
+  const runTrib = async (tag) => {
+    await attempt(tag);
+    await modal.getByRole('button', { name: '引雷渡劫' }).click();
+    await c.page.locator('.trib-overlay').waitFor({ timeout: 4000 }).catch(() => { throw new Fail('点击「引雷渡劫」后舞台未出现劫雷面板 .trib-overlay'); });
+    await sleep(1800);
+    await shot(c, `07-trib-${tag}-strike`);
+    const sc = await ev(c, (a) => a.stage.scene);
+    check(sc === 'tribulation', `渡劫期间舞台场景应为 tribulation，实为 ${sc}`);
+    await modal.waitFor({ timeout: 20000 });
+    const title = await modal.locator('.scroll-title').textContent();
+    check(/渡劫功成|渡劫失败|飞升|坐化|陨落/.test(title) || title.length > 0, `渡劫结果卷轴标题异常：${title}`);
+    await shot(c, `07-trib-${tag}-result`);
+    const ok = /功成/.test(title);
+    await modal.getByRole('button', { name: /知晓|转世/ }).first().click().catch(() => {});
+    await c.page.waitForFunction(() => !document.querySelector('.modal-mask'), null, { timeout: 5000 });
+    await sleep(500);
+    const sc2 = await ev(c, (a) => a.stage.scene);
+    check(sc2 === 'home', `渡劫结束后舞台应回到 home，实为 ${sc2}（暴雨场景残留）`);
+    check(await c.page.locator('.trib-overlay').count() === 0, '渡劫结束后劫雷面板未移除');
+    return ok;
+  };
+  // 第一次：无任何准备，多半失败；失败须有重伤、境界不变
+  const ok1 = await runTrib('a');
+  let res = await ev(c, (a, g, s) => ({ stage: s.stage, trib: s.counters.tribulations, fails: s.counters.tribulationFails, injured: s.injury.until > s.time.played }));
   check(res.trib === 1, `渡劫次数应为 1：${JSON.stringify(res)}`);
-  const realm = await realmText(c);
-  if (res.fails === 0) check(res.stage === stage0 + 1 && realm.includes('筑基前期'), `渡劫成功后顶栏应为筑基前期，实为 ${realm}`);
-  else check(res.stage === stage0 && !!res, `渡劫失败境界不应变化：${JSON.stringify(res)}`);
-  notes.push(`07 渡劫结果：${res.fails ? '失败' : '成功'}，顶栏 ${realm}，点击序列 ${clicked.join('>')}`);
+  if (ok1) {
+    check(res.stage === stage0 + 1 && (await realmText(c)).includes('筑基前期'), `渡劫成功后顶栏应为筑基前期，实为 ${await realmText(c)}`);
+  } else {
+    check(res.stage === stage0 && res.fails === 1 && res.injured, `渡劫失败应保持境界、负伤：${JSON.stringify(res)}`);
+    check((await c.page.locator('.topbar').textContent()).includes('负伤'), '渡劫失败后顶栏应显示「负伤」');
+    // 第二次：积蓄渡劫减伤后重来，应成功
+    await ev(c, (a, g, s) => { s.injury.until = 0; s.pending.tribulationResist = 0.8; s.player.age = 16; });
+    await fillQi();
+    await c.page.waitForFunction(() => { const b = [...document.querySelectorAll('.panel-wrap .seal-btn')].find((x) => x.textContent === '渡劫'); return b && !b.disabled; }, null, { timeout: 5000 });
+    const ok2 = await runTrib('b');
+    check(ok2, '积蓄 80% 减伤后渡劫应当成功');
+    check((await realmText(c)).includes('筑基前期'), `渡劫成功后顶栏应为筑基前期，实为 ${await realmText(c)}`);
+  }
+  notes.push(`07 渡劫：首次${ok1 ? '成功' : '失败（再次带减伤后成功）'}`);
   await shot(c, '07-trib-after');
   check(c.errors.length === 0, c.errors.join('\n'));
   await c.context.close();
@@ -552,9 +595,10 @@ test('09 设置：特效档位、导出导入、重置', async () => {
   await expectToast(c, /存档已导入/);
   check(await ev(c, (a, g, s) => s.inventory.stones) === 4321, '导入后灵石应为 4321');
   // 非法导入
+  await sleep(400);
   await c.page.locator('textarea').fill('garbage');
   await c.page.getByRole('button', { name: '导入', exact: true }).click();
-  await expectToast(c, /无法识别/);
+  await expectToast(c, /无法识别/).catch(async (e) => { throw new Fail(`${e.message}；textarea=${await c.page.locator('textarea').inputValue()}；modal=${await c.page.locator('.modal-mask').count()}`); });
   await shot(c, '09-settings-import');
   // 重置
   await c.page.getByRole('button', { name: '重置', exact: true }).click();

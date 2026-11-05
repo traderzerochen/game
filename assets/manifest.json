@@ -278,6 +278,89 @@
       "source": "self-made",
       "license": "project",
       "note": "low/mid/high 特效档位"
+    },
+    {
+      "id": "silhouette.humanoid",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "variant: male / female / sword / alchemist / talisman / wanderer / meditate"
+    },
+    {
+      "id": "silhouette.wolf",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "silhouette.spider",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "variant: spider / scorpion"
+    },
+    {
+      "id": "silhouette.puppet",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "variant: wood / sword"
+    },
+    {
+      "id": "silhouette.toad",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "silhouette.snake",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "silhouette.golem",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "silhouette.bird",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "variant: crow / bat"
+    },
+    {
+      "id": "silhouette.beast",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "variant: qilin / turtle"
+    },
+    {
+      "id": "silhouette.vine",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "silhouette.svg",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "silhouetteSVG：同一造型的 SVG 版（viewBox 0 0 128 160）"
     }
   ]
 }

@@ -1,7 +1,7 @@
 // 主舞台 Canvas：水墨视差场景 + 角色/敌人剪影 + 特效层
 import { PALETTE, elementColor, withAlpha } from '../art/palette.js';
 import { renderScene, sceneName } from '../art/scenes.js';
-import { drawSilhouette } from '../art/silhouette.js';
+import { drawSilhouette, enemySilhouette } from '../art/silhouette.js';
 import { createFx, glowFor, GLOW } from '../art/fx.js';
 
 export function createStage(container, { getQuality }) {
@@ -63,7 +63,7 @@ export function createStage(container, { getQuality }) {
     for (const k of ['player', 'enemy']) { hit[k] = Math.max(0, hit[k] - dt); lunge[k] = Math.max(0, lunge[k] - dt); }
     const pl = lunge.player > 0 ? Math.sin((lunge.player / 0.3) * Math.PI) * 26 * L.s : 0;
     drawSilhouette(ctx, 'humanoid', {
-      seed: 'player', variant: mode === 'battle' || mode === 'explore' ? 'sword' : playerVariant, pose: lunge.player > 0 ? 'attack' : undefined,
+      seed: 'player', variant: mode === 'battle' || mode === 'explore' ? 'sword' : playerVariant, pose: lunge.player > 0 ? 'attack' : hit.player > 0 && mode === 'battle' ? 'hurt' : 'idle',
       x: px + pl - (hit.player > 0 ? 6 * L.s : 0), y: py, scale: L.s, facing: 1, t,
       ink: mode === 'tribulation' ? PALETTE.ink0 : PALETTE.ink1, accent: PALETTE.azurite,
       alpha: hit.player > 0 && Math.floor(hit.player * 30) % 2 ? 0.45 : 1,
@@ -74,7 +74,7 @@ export function createStage(container, { getQuality }) {
       const [ex, ey] = L.e;
       const el = lunge.enemy > 0 ? Math.sin((lunge.enemy / 0.3) * Math.PI) * 26 * L.s : 0;
       drawSilhouette(ctx, enemy.archetype, {
-        seed: enemy.seed, x: ex - el + (hit.enemy > 0 ? 6 * L.s : 0), y: ey, scale: L.s * (enemy.boss ? 1.25 : 1), facing: -1, t,
+        seed: enemy.seed, variant: enemy.variant, pose: lunge.enemy > 0 ? 'attack' : hit.enemy > 0 ? 'hurt' : 'idle', x: ex - el + (hit.enemy > 0 ? 6 * L.s : 0), y: ey, scale: L.s * (enemy.boss ? 1.25 : 1), facing: -1, t,
         ink: PALETTE.ink0, accent: enemy.accent, alpha: hit.enemy > 0 && Math.floor(hit.enemy * 30) % 2 ? 0.45 : 1,
       });
     }
@@ -114,7 +114,8 @@ export function createStage(container, { getQuality }) {
     setEnemy(e) {
       if (e) {
         mode = 'battle';
-        enemy = { archetype: e.art || 'beast', seed: e.id, accent: elementColor(e.element), name: e.name, boss: !!e.boss, element: e.element };
+        const sil = enemySilhouette(e) || {};
+        enemy = { archetype: sil.archetype || e.art || 'beast', variant: sil.variant, seed: sil.seed ?? e.id, accent: sil.accent || elementColor(e.element), name: e.name, boss: !!e.boss, element: e.element };
       } else {
         enemy = null;
         if (mode === 'battle') mode = 'explore';
