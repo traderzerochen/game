@@ -1,7 +1,8 @@
 // 主舞台 Canvas：水墨视差场景 + 角色/敌人剪影 + 特效层
 import { PALETTE, elementColor, withAlpha } from '../art/palette.js';
 import { renderScene, sceneName } from '../art/scenes.js';
-import { drawSilhouette, enemySilhouette } from '../art/silhouette.js';
+import { drawSilhouette, enemySilhouette, ARCHETYPES } from '../art/silhouette.js';
+import { drawHeavenGate } from '../art/scenery.js';
 import { createFx, glowFor, GLOW } from '../art/fx.js';
 
 export function createStage(container, { getQuality }) {
@@ -19,6 +20,10 @@ export function createStage(container, { getQuality }) {
   const hit = { player: 0, enemy: 0 };
   const lunge = { player: 0, enemy: 0 };
   let playerVariant = 'meditate';
+  let tribTheme = 'default'; // default | zixiao | jiuyou | dengqiong
+  let gate = 0, gateTarget = 0; // 天门开度
+  let demonFlare = 0;           // 心魔影受雷光映照
+  let ascend = null;            // 飞升演出 {t, dur, done}
 
   function resize() {
     const r = container.getBoundingClientRect();
@@ -35,6 +40,11 @@ export function createStage(container, { getQuality }) {
     if (mode === 'battle') return { p: [W * 0.3, H * 0.9], e: [W * 0.7, H * 0.9], s: s * 1.05 };
     if (mode === 'explore') return { p: [W * 0.42, H * 0.9], e: null, s: s * 1.05 };
     if (mode === 'tribulation') return { p: [W * 0.5, H * 0.79], e: null, s: s * 0.85 };
+    if (mode === 'ascend') {
+      const u = ascend ? Math.min(1, ascend.t / ascend.dur) : 0;
+      const lift = Math.max(0, (u - 0.35) / 0.65);
+      return { p: [W * 0.5, H * 0.79 - lift * lift * H * 0.55], e: null, s: s * 0.85 * (1 - 0.35 * lift) };
+    }
     return { p: [W * 0.5, H * 0.86], e: null, s: s * 1.1 };
   }
 
@@ -46,9 +56,26 @@ export function createStage(container, { getQuality }) {
     const shake = fx.shake;
     if (shake > 0) ctx.translate((Math.random() - 0.5) * 14 * shake, (Math.random() - 0.5) * 10 * shake);
     renderScene(ctx, sceneKey, t, q, { w: W, h: H }, dt);
+    if (ascend) tickAscend(dt);
+    gate += (gateTarget - gate) * Math.min(1, dt * 1.5);
+    if (gate > 0.01) drawHeavenGate(ctx, { width: W, height: H, open: gate, t });
 
     const L = layout();
     const [px, py] = L.p;
+    // 九幽心雷劫：心魔影环伺
+    if (mode === 'tribulation' && tribTheme === 'jiuyou') {
+      demonFlare = Math.max(0, demonFlare - dt * 1.5);
+      const arch = ARCHETYPES.includes('wraith') ? 'wraith' : 'humanoid';
+      for (let i = 0; i < 4; i++) {
+        const a = t * 0.25 + i * (Math.PI / 2);
+        const dx = Math.cos(a) * W * 0.26, dz = Math.sin(a);
+        drawSilhouette(ctx, arch, {
+          seed: `xinmo${i}`, variant: arch === 'humanoid' ? 'wanderer' : undefined, x: px + dx, y: py - 10 * L.s + dz * 12 * L.s,
+          scale: L.s * (0.8 + 0.15 * dz), facing: dx > 0 ? -1 : 1, t: t + i, ink: '#0d1218', accent: 'rgba(90,140,255,1)',
+          alpha: 0.16 + 0.1 * (dz + 1) / 2 + 0.45 * demonFlare,
+        });
+      }
+    }
     // 打坐时的灵气汇聚与身后光晕
     if ((mode === 'home' || mode === 'tribulation') && cultivating) {
       const cy = py - 50 * L.s;
@@ -66,8 +93,8 @@ export function createStage(container, { getQuality }) {
       seed: 'player', variant: mode === 'battle' || mode === 'explore' ? 'sword' : playerVariant, pose: lunge.player > 0 ? 'attack' : hit.player > 0 && mode === 'battle' ? 'hurt' : 'idle',
       x: px + pl - (hit.player > 0 ? 6 * L.s : 0), y: py, scale: L.s, facing: 1, t,
       ink: mode === 'tribulation' ? PALETTE.ink0 : PALETTE.ink1, accent: PALETTE.azurite,
-      alpha: hit.player > 0 && Math.floor(hit.player * 30) % 2 ? 0.45 : 1,
-      glow: mode === 'tribulation' ? GLOW.cyan : null,
+      alpha: (hit.player > 0 && Math.floor(hit.player * 30) % 2 ? 0.45 : 1) * (ascend ? Math.max(0, 1 - Math.max(0, ascend.t / ascend.dur - 0.75) / 0.25) : 1),
+      glow: mode === 'ascend' || tribTheme === 'dengqiong' ? GLOW.gold : mode === 'tribulation' ? GLOW.cyan : null,
     });
     // 敌人
     if (mode === 'battle' && enemy && L.e) {
@@ -94,6 +121,19 @@ export function createStage(container, { getQuality }) {
     }
   }
 
+  // 飞升演出：天门渐开 → 金光接引（光尘上升）→ 身形升空淡出 → 金光满屏
+  function tickAscend(dt) {
+    const A = ascend;
+    A.t += dt;
+    const u = A.t / A.dur;
+    gateTarget = Math.min(1, 0.2 + u * 1.6);
+    const L = layout();
+    fx.rise(L.p[0], L.p[1] - 20 * L.s, { color: Math.random() < 0.7 ? GLOW.gold : GLOW.cyan, spread: 120 * L.s, n: 3 });
+    if (!A.burst && u > 0.35) { A.burst = true; fx.gather(L.p[0], L.p[1] - 50 * L.s, { spread: Math.min(W, H) * 0.6 }); }
+    if (!A.flashed && u > 0.92) { A.flashed = true; fx.flash(0.9, '255,244,214'); }
+    if (u >= 1 && !A.done) { A.done = true; const cb = A.onDone; setTimeout(() => cb && cb(), 300); }
+  }
+
   const ro = new ResizeObserver(() => resize());
   ro.observe(container);
   resize();
@@ -107,7 +147,11 @@ export function createStage(container, { getQuality }) {
     setScene(key, label) {
       sceneKey = key || 'home';
       sceneLabel = label || (sceneKey === 'home' ? '' : sceneName(sceneKey));
-      mode = sceneKey === 'tribulation' ? 'tribulation' : sceneKey === 'home' ? 'home' : 'explore';
+      const isTrib = sceneKey.startsWith('tribulation');
+      mode = isTrib ? 'tribulation' : sceneKey === 'ascension' ? 'ascend' : sceneKey === 'home' ? 'home' : 'explore';
+      tribTheme = isTrib ? (sceneKey.split('_')[1] || 'default') : 'default';
+      gateTarget = tribTheme === 'dengqiong' ? 0.12 : 0;
+      if (!isTrib && sceneKey !== 'ascension') { gate = 0; ascend = null; }
       if (sceneKey === 'home') { enemy = null; fx.clear(); }
     },
     /** 战斗：设置敌人（null 表示离开战斗，回到行走/探索状态） */
@@ -143,12 +187,23 @@ export function createStage(container, { getQuality }) {
       if (ev.crit || ev.action === 'skill') fx.burst(bx, by + midY, { color, power: ev.crit ? 1.2 : 0.6 });
       if (ev.heal) fx.heal(ax, ay + midY);
     },
-    /** 渡劫：一道天雷劈向角色 */
-    thunder(power = 1) {
+    /** 渡劫：一道天雷劈向角色。branches 随劫数递增（fx 内按档位封顶） */
+    thunder(power = 1, { branches = null, progress = 0 } = {}) {
       const L = layout();
       const [px, py] = L.p;
-      fx.lightning(px + (Math.random() - 0.5) * W * 0.3, 0, px, py - 60 * L.s, { power });
+      fx.lightning(px + (Math.random() - 0.5) * W * 0.3, 0, px, py - 60 * L.s, { power, theme: tribTheme, branches });
       hit.player = 0.35;
+      demonFlare = 1;
+      if (tribTheme === 'dengqiong') gateTarget = 0.12 + 0.5 * progress; // 雷落一道，天门开一分
+    },
+    /** 渡劫结束：登穹成功时天门大开 */
+    openGate(v = 1) { gateTarget = v; },
+    /** 飞升演出，结束后回调 */
+    playAscension(onDone, dur = 6) {
+      api.setScene('ascension', '天门');
+      fx.clear();
+      gate = Math.max(gate, 0.1);
+      ascend = { t: 0, dur, onDone };
     },
     healPulse() { const L = layout(); fx.heal(L.p[0], L.p[1] - 50 * L.s); },
     flash(a, c) { fx.flash(a, c); },

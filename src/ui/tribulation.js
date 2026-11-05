@@ -92,9 +92,22 @@ export function openTribulation(app) {
 }
 
 /** 在舞台上逐道播放天雷 */
+/** 由劫数（第几重大劫）派生画面主题：紫霄紫、九幽幽蓝、登穹金白 */
+export function tribulationTheme(data, rep) {
+  const n = rep?.name || '';
+  if (n.includes('登穹')) return { theme: 'dengqiong', tier: 4 };
+  if (n.includes('九幽')) return { theme: 'jiuyou', tier: 3 };
+  if (n.includes('紫霄')) return { theme: 'zixiao', tier: 2 };
+  const stages = data.realms.filter((r) => r.tribulation).map((r) => r.stage);
+  const tier = Math.max(0, stages.indexOf(rep?.from));
+  return { theme: ['default', 'default', 'zixiao', 'jiuyou', 'dengqiong'][tier] || 'default', tier };
+}
+
 function play(app, rep) {
   const { data, stage } = app;
-  stage.setScene('tribulation', rep.name);
+  const { theme, tier } = tribulationTheme(data, rep);
+  stage.setScene(theme === 'default' ? 'tribulation' : `tribulation_${theme}`, rep.name);
+  app.els.stageEl.dataset.trib = theme;
   app.audio?.play('tribulation:start');
   // 舞台上的劫雷面板
   const hpBar = inkBar(1, { cls: 'hp', label: `${fmtInt(rep.maxHp)} / ${fmtInt(rep.maxHp)}` });
@@ -110,8 +123,10 @@ function play(app, rep) {
   const next = () => {
     if (i >= R.length) return setTimeout(done, 900 / speed);
     const r = R[i++];
-    const power = 0.7 + 0.5 * (r.dmg / Math.max(1, rep.maxHp)) * R.length;
-    stage.thunder(Math.min(1.6, power));
+    const progress = R.length > 1 ? (i - 1) / (R.length - 1) : 1;
+    const power = (0.7 + 0.5 * (r.dmg / Math.max(1, rep.maxHp)) * R.length) * (1 + 0.2 * tier) * (1 + 0.3 * progress);
+    // 分叉随劫数与雷序递增；fx 内再按特效档位封顶
+    stage.thunder(Math.min(2.2, power), { branches: 1 + tier + Math.floor(progress * 3), progress });
     app.audio?.play('thunder');
     line.textContent = `${tpl(data.texts.tribulation?.strike || '第{r}道天雷落下！', { r: r.r })}  −${fmtInt(r.dmg)}`;
     hpBar.set(r.hp / rep.maxHp, `${fmtInt(r.hp)} / ${fmtInt(rep.maxHp)}`);
@@ -122,6 +137,8 @@ function play(app, rep) {
 
   function done() {
     overlay.remove();
+    delete app.els.stageEl.dataset.trib;
+    if (rep.success && theme === 'dengqiong') stage.openGate(1);
     app.replaying = false;
     app.cinematic = false;
     if (rep.success) {
@@ -133,8 +150,8 @@ function play(app, rep) {
       ? (rep.ending ? '雷云尽散，天门洞开。' : `${tpl(data.texts.tribulation?.success || '你渡过了{name}。', { name: rep.name })}晋入${toRealm?.name || ''}。`)
       : rep.death ? '天雷贯顶……' : (data.texts.tribulation?.fail || '雷劫未渡，你身受重伤。');
     setTimeout(() => {
-      stage.setScene('home');
       if (rep.ending) { app.showEnding(); return; }
+      stage.setScene('home');
       app.openModal({
         title: rep.success ? '渡劫功成' : '渡劫失败',
         body: h('div', {},

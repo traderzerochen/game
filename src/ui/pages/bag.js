@@ -24,6 +24,24 @@ export function treasureStatText(t) {
   return parts.join(' · ');
 }
 
+/** 服丹并以浮字报告实际药效（qi 类含丹毒衰减） */
+export function usePillUI(app, pill, q) {
+  const r = app.game.usePill(pill.id, q);
+  if (!r.ok) { app.toast(r.reason === 'invalid' && pill.effect?.type === 'qi' ? '灵气已满，药力无处容纳' : reasonText(r.reason), 'bad'); app.forceRefresh(); return r; }
+  const nm = `${QUALITY_NAMES[q]}${pill.name}`;
+  let msg = `服下${nm}`;
+  if (r.type === 'qi') {
+    msg += `，灵气 +${fmtInt(r.qiGained ?? 0)}`;
+    if (r.toxicity > 0) msg += `（丹毒 ${r.toxicity} 层，药效 ×${+(r.mult ?? 1).toFixed(2)}）`;
+  } else if (r.type === 'qiRate') msg += `，修炼 +${fmtPct(r.value)}`;
+  else if (r.type === 'breakthrough') msg += `，破关 +${fmtPct(r.value)}`;
+  else if (r.type === 'tribulation') msg += `，渡劫减伤 +${fmtPct(r.value)}`;
+  else if (r.type === 'lifespan') msg += `，寿元 +${r.value} 年`;
+  app.toast(msg, r.toxicity > 0 ? 'bad' : 'good');
+  app.forceRefresh();
+  return r;
+}
+
 function render(el, app) {
   const { game, data } = app;
   const st = game.state;
@@ -58,7 +76,11 @@ function render(el, app) {
   el.appendChild(tBox);
 
   // ---- 丹药 ----
+  const tox = game.view().pillToxicity || { n: 0, nextMult: 1 };
+  const toxText = `丹毒 ${tox.n} 层，药效 ×${+(tox.nextMult ?? 1).toFixed(2)}`;
   const pBox = h('div', { class: 'section' }, h('h3', {}, '丹药 ', h('span', { class: 'muted', text: '点击服用' })));
+  const hasQiPill = Object.entries(inv.pills || {}).some(([pid, arr]) => data.byId.pills.get(pid)?.effect?.type === 'qi' && (arr || []).some((n) => n > 0));
+  if (hasQiPill) pBox.appendChild(h('div', { class: `small toxicity ${tox.n > 0 ? 'on' : ''}`, text: `聚气类丹药：${toxText}（同一小境界内每服一颗，下一颗药效 ×0.6；破境后清除）` }));
   const pGrid = h('div', { class: 'grid-items' });
   for (const [pid, arr] of Object.entries(inv.pills || {})) {
     const pill = data.byId.pills.get(pid);
@@ -68,10 +90,12 @@ function render(el, app) {
       const e = pill.effect || {};
       const usable = USABLE.has(e.type);
       const tip = `${QUALITY_NAMES[q]}${pill.name}\n${(PILL_EFFECT[e.type] || (() => ''))(+(e.value * QM[q]).toFixed(3), e.duration)}\n${pill.desc || ''}${usable ? '' : '\n（战斗规则或渡劫时使用）'}`;
+      const isQi = e.type === 'qi';
       pGrid.appendChild(h('div', {
-        class: `item ${usable ? 'clickable' : ''}`, title: tip,
-        onclick: usable ? () => act(game.usePill(pid, q), `服下${QUALITY_NAMES[q]}${pill.name}`) : null,
-      }, h('div', { html: pillIcon(pill, q) }), h('div', { class: `nm q${q}`, text: `${QUALITY_NAMES[q]}${pill.name}` }), h('div', { class: 'cnt', text: `×${n}` })));
+        class: `item ${usable ? 'clickable' : ''}`, title: isQi ? `${tip}\n${toxText}` : tip,
+        onclick: usable ? () => usePillUI(app, pill, q) : null,
+      }, h('div', { html: pillIcon(pill, q) }), h('div', { class: `nm q${q}`, text: `${QUALITY_NAMES[q]}${pill.name}` }), h('div', { class: 'cnt', text: `×${n}` }),
+      isQi ? h('div', { class: `tox ${tox.n > 0 ? 'on' : ''}`, text: tox.n > 0 ? `毒${tox.n} ×${+tox.nextMult.toFixed(2)}` : '无毒' }) : null));
     });
   }
   pBox.appendChild(pGrid.children.length ? pGrid : h('div', { class: 'desc', text: '尚无丹药。' }));

@@ -25,8 +25,16 @@ export function showEnding(app) {
   const ed = data.endings.find((x) => x.id === id) || { name: '终局', text: '' };
   const st = game.state;
   const c = st.counters || {};
-  if (id === 'ascend') { stage.flash(0.8, '255,236,180'); stage.gather(); }
-  else if (id === 'fallen') stage.flash(0.6, '29,27,25');
+  // 飞升：先播天门接引演出（每次进入结局只播一次），播完再展开结局卷轴
+  if (id === 'ascend' && !app._ascendPlayed) {
+    app._ascendPlayed = true;
+    app.cinematic = true;
+    app._endingOpen = false;
+    stage.playAscension(() => { app.cinematic = false; showEnding(app); });
+    return;
+  }
+  if (id === 'fallen') { stage.setScene('home'); stage.flash(0.6, '29,27,25'); }
+  else if (id === 'sit') stage.setScene('home');
   const next = previewLegacy(v.legacy || {}, id);
   const heart = data.byId.techniques.get(st.techniques.equipped.heart);
   const body = h('div', { class: `ending ending-${id}` },
@@ -55,6 +63,7 @@ export function showEnding(app) {
       onclick: () => {
         const r = game.rebirth();
         app._endingOpen = false;
+        app._ascendPlayed = false;
         if (!r.ok) { app.toast('轮回之门未开', 'bad'); return; }
         game.save();
         stage.setScene('home');

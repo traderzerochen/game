@@ -401,11 +401,11 @@ export function pillIcon(pill, q = 0, opts = {}) {
 
 // ---------------------------------------------------------------- 法宝：飞剑 / 法衣 / 符 / 玉佩 / 小鼎
 
-const TREASURE_FORMS = [[/剑|刃/, 'sword'], [/衣|袍|甲/, 'robe'], [/符|箓/, 'talisman'], [/佩|玉|璧/, 'pendant'], [/鼎|炉/, 'cauldron']];
-const MATERIAL = [[/青|翠/, P.malachite], [/霜|寒|冰|雪/, P.azurite], [/赤|炎|火/, mix(P.ochre, P.cinnabar, 0.45)], [/玄|墨|夜/, P.ink1], [/金/, P.gamboge], [/云/, P.azurite], [/木|雷/, P.ochre], [/玉|魂/, P.malachite]];
+const TREASURE_FORMS = [[/剑|刃/, 'sword'], [/衣|袍|甲|氅|裳/, 'robe'], [/符|箓/, 'talisman'], [/珠|丸/, 'pearl'], [/佩|玉|璧/, 'pendant'], [/鼎|炉/, 'cauldron']];
+const MATERIAL = [[/星|陨/, mix(P.azurite, P.ink1, 0.35)], [/青|翠/, P.malachite], [/霜|寒|冰|雪/, P.azurite], [/赤|炎|火/, mix(P.ochre, P.cinnabar, 0.45)], [/玄|墨|夜/, P.ink1], [/金/, P.gamboge], [/云/, P.azurite], [/木|雷/, P.ochre], [/玉|魂/, P.malachite]];
 
 const TREASURE_DRAW = {
-  sword(I, c) {
+  sword(I, c, t) {
     // 剑光尾迹
     I.line([[8, 48], [20, 40], [30, 30]], { w: 2.2, c, a: 0.35, amp: 0.4 });
     I.line([[10, 56], [22, 46], [34, 34]], { w: 1.2, c, a: 0.3, amp: 0.4 });
@@ -424,21 +424,31 @@ const TREASURE_DRAW = {
     I.brush([[21.5, 50], [17, 54], [12, 53], [8, 58]], 2.4, { c: P.cinnabar, head: 0.05, tail: 0.7 });
     I.brush([[21.5, 50], [18, 56], [14, 61]], 1.6, { c: P.cinnabar, head: 0.05, tail: 0.7, a: 0.8 });
     I.spark(48, 10, 3, mix(c, P.paper, 0.3));
+    if (/星|陨/.test(t.name)) { I.spark(14, 30, 2.4, P.gamboge); I.spark(24, 20, 1.6, P.gamboge); I.spark(40, 50, 1.8, P.gamboge); }
   },
   robe(I, c, t) {
-    const dark = /玄|墨/.test(t.name);
-    const cloth = dark ? P.ink1 : mix(c, P.paper, 0.45);
+    const dark = /玄|墨/.test(t.name), crane = /鹤|羽/.test(t.name);
+    const cloth = dark ? P.ink1 : crane ? mix(P.paper, c, 0.12) : mix(c, P.paper, 0.45);
     const pts = [[32, 10], [44, 12], [58, 22], [58, 34], [50, 36], [46, 30], [47, 56], [17, 56], [18, 30], [14, 36], [6, 34], [6, 22], [20, 12]];
     I.add(`<path d="M${pts.map((p) => p.join(' ')).join('L')}Z" fill="${I.linear([[0, mix(cloth, P.paper, dark ? 0.1 : 0.2)], [1, mix(cloth, P.ink0, 0.2)]])}"/>`);
     if (dark) for (let row = 0; row < 4; row++) for (let col = 0; col < 4; col++) {
       const x = 22 + col * 6.5 + (row % 2) * 3, y = 32 + row * 5.5;
       I.add(`<path d="M${x - 3} ${y}A3 3 0 0 0 ${x + 3} ${y}" fill="none" stroke="${P.paper}" stroke-opacity=".35" stroke-width=".7"/>`);
     }
+    else if (crane) {
+      for (let row = 0; row < 3; row++) for (let col = 0; col < 4; col++) {
+        const x = 22 + col * 6.5 + (row % 2) * 3, y = 40 + row * 5.5;
+        I.add(`<path d="M${x - 3} ${y}Q${x} ${y + 4} ${x + 3} ${y}" fill="none" stroke="${P.ink2}" stroke-opacity=".55" stroke-width=".7"/>`);
+      }
+      I.add(`<path d="M6 22L18 30L14 36L6 34Z" fill="${P.ink0}"/><path d="M58 22L46 30L50 36L58 34Z" fill="${P.ink0}"/>`);
+      I.line([[14, 28], [10, 32]], { w: 0.6, c: P.paper, a: 0.6 }); I.line([[50, 28], [54, 32]], { w: 0.6, c: P.paper, a: 0.6 });
+      for (const [x, y] of [[26, 20], [40, 18]]) I.line([[x, y], [x + 3, y - 3], [x + 6, y - 1], [x + 4, y + 1], [x + 2, y], [x + 4, y - 2], [x + 9, y - 1]], { w: 0.8, c: c, a: 0.75, amp: 0.15 });
+    }
     else for (const [x, y] of [[24, 42], [38, 48], [12, 26]]) I.line([[x, y], [x + 3, y - 3], [x + 6, y - 1], [x + 4, y + 1], [x + 2, y], [x + 4, y - 2], [x + 9, y - 1]], { w: 0.8, c: P.paper, a: 0.75, amp: 0.15 });
     I.line([[20, 12], [32, 30], [44, 12]], { w: 1.4, c: dark ? P.paper : P.ink0, a: dark ? 0.6 : 1, amp: 0.2 });
     I.line([[32, 30], [38, 22]], { w: 1, c: dark ? P.paper : P.ink0, a: 0.6, amp: 0.2 });
     I.add(`<rect x="18" y="31" width="28" height="4" fill="${dark ? mix(c, P.ink0, 0.2) : P.ink1}"/>`);
-    I.blob([[30, 33], [32, 31], [34, 33], [32, 35]], { c: dark ? P.cinnabar : c });
+    I.blob([[30, 33], [32, 31], [34, 33], [32, 35]], { c: dark || crane ? P.cinnabar : c });
     I.brush([[31, 35], [29, 42], [30, 47]], 1.5, { c: dark ? P.cinnabar : c, head: 0.05, tail: 0.6 });
     I.line([[6, 34], [14, 36]], { w: 2.4, c: P.ink0, amp: 0.2 });
     I.line([[50, 36], [58, 34]], { w: 2.4, c: P.ink0, amp: 0.2 });
@@ -464,6 +474,28 @@ const TREASURE_DRAW = {
       I.line([[54, 6], [47, 17], [53, 18], [46, 30]], { w: 0.7, c: P.paper, amp: 0.2 });
     }
     void c;
+  },
+  pearl(I, c, t) {
+    const thunder = /雷/.test(t.name);
+    // 云座
+    I.blob([[14, 52], [20, 46], [28, 49], [32, 45], [37, 49], [44, 46], [50, 52], [40, 56], [24, 56]], { c: mix(P.ink2, P.paper, 0.2), stroke: P.ink0, w: 1.4 });
+    I.line([[20, 51], [26, 50], [28, 53]], { w: 0.7, c: P.paper, a: 0.7 }); I.line([[36, 52], [40, 49.5], [45, 51]], { w: 0.7, c: P.paper, a: 0.7 });
+    // 珠光
+    I.glow(thunder ? P.glowCyan : P.glowGold, 22, 0.6, 32, 30);
+    const pc = thunder ? mix(P.paper, P.azurite, 0.18) : mix(P.paper, c, 0.25);
+    I.add(`<circle cx="32" cy="30" r="13" fill="${I.radial([[0, P.paper], [0.55, pc], [1, mix(pc, P.ink1, 0.35)]], { cx: 0.38, cy: 0.34, r: 0.7 })}"/>`);
+    I.line(circ(32, 30, 8.5, 12, Math.PI * 1.05, Math.PI * 1.65), { w: 0.8, c: P.paper, a: 0.9, amp: 0.1 });
+    I.line(circ(32, 30, 13, 22), { w: 1.8, c: P.ink0, closed: true, amp: 0.3 });
+    I.add(`<ellipse cx="27" cy="24.5" rx="3.6" ry="2" fill="${P.paper}" fill-opacity=".9" transform="rotate(-35 27 24.5)"/>`);
+    if (thunder) {
+      // 雷光绕珠而过：被珠光弹开的电弧
+      I.line(circ(32, 30, 17, 20, Math.PI * 1.1, Math.PI * 1.9), { w: 0.9, c: P.azurite, a: 0.7, amp: 0.6 });
+      for (const [pts] of [[[[8, 6], [14, 12], [11, 14], [17, 19]]], [[[58, 8], [51, 13], [55, 15], [48, 20]]]]) {
+        I.line(pts, { w: 2, c: P.gamboge, amp: 0.15 });
+        I.line(pts, { w: 0.6, c: P.paper, amp: 0.15 });
+      }
+      I.spark(16, 22, 1.8, P.gamboge); I.spark(49, 23, 1.8, P.gamboge);
+    }
   },
   pendant(I, c) {
     I.brush([[32, 3], [31, 12], [32, 21]], 1.6, { c: P.cinnabar, head: 0.05, tail: 0.1, taper: 0.3 });

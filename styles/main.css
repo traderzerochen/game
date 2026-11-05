@@ -387,3 +387,15 @@ input[type="range"] { accent-color: var(--azurite); }
 .furnace-result { min-height: 72px; text-align: center; font-family: var(--font-kai); font-size: 18px; }
 .furnace-result svg { width: 56px; height: 56px; display: block; margin: 0 auto 2px; }
 .furnace-result.q3 svg { filter: drop-shadow(0 0 10px var(--glow-gold)); }
+.toxicity { color: var(--ink-2); margin-bottom: 6px; }
+.toxicity.on, .item .tox.on { color: rgba(184, 67, 47, .75); }
+.item .tox { font-size: 11px; color: var(--ink-3); line-height: 1.2; }
+/* 渡劫主题 */
+.stage[data-trib="zixiao"] .trib-overlay { background: rgba(48, 34, 62, .6); border-color: rgba(200, 170, 240, .4); }
+.stage[data-trib="jiuyou"] .trib-overlay { background: rgba(16, 26, 42, .65); border-color: rgba(120, 160, 240, .4); }
+.stage[data-trib="dengqiong"] .trib-overlay { background: rgba(70, 58, 30, .5); border-color: rgba(255, 220, 150, .55); color: #fff8e6; }
+/* 窄屏：字幕移到舞台顶端，避免压住人物 */
+@media (max-width: 960px) {
+  .stage .stage-caption { top: 8px; bottom: auto; font-size: 14px; letter-spacing: 1px; white-space: nowrap; }
+  .toast-layer { top: 36px; }
+}

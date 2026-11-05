@@ -1,7 +1,15 @@
 // 历练页：秘境列表（冷却、境界要求）、战报逐步回放（日志 + 血条）、结算卷轴、战斗丹药规则
 import { h, btn, sealButton, inkBar } from '../dom.js';
 import { fmtClock, fmtInt, fmtPct, reasonText } from '../format.js';
-import { enemyPortrait, herbIcon, pillIcon, treasureIcon, techniqueIcon, placeholderIcon } from '../../art/icons.js';
+import * as Icons from '../../art/icons.js';
+import { silhouetteSVG } from '../../art/silhouette.js';
+
+const { enemyPortrait, herbIcon, pillIcon, treasureIcon, techniqueIcon, placeholderIcon } = Icons;
+/** 灵石图标：优先用 art-assets 的 stoneIcon，未提供时退回占位 */
+const stoneSVG = (variant) => (Icons.stoneIcon ? Icons.stoneIcon({ variant })
+  : placeholderIcon({ label: variant === 'dup' ? '折' : '石', color: variant === 'dup' ? PALETTE.ink2 : PALETTE.azurite, shape: 'circle', seed: variant }));
+/** 玩家头像：持剑修士剪影半身 */
+const playerPortrait = () => silhouetteSVG('humanoid', { variant: 'sword', seed: 'player', crop: 'bust', size: 64, ink: PALETTE.ink1, accent: PALETTE.azurite });
 import { PALETTE, QUALITY_NAMES } from '../../art/palette.js';
 
 const STEP_MS = 1100;
@@ -172,8 +180,8 @@ function showSettlement(app, rep) {
   const { data } = app;
   const items = [];
   const g = rep.gains || {};
-  if (g.stones) items.push({ svg: placeholderIcon({ label: '石', color: PALETTE.azurite, shape: 'circle', seed: 'stone' }), nm: '灵石', n: g.stones });
-  if (rep.dupStones) items.push({ svg: placeholderIcon({ label: '折', color: PALETTE.ink2, shape: 'circle', seed: 'dup' }), nm: '折价灵石', n: rep.dupStones });
+  if (g.stones) items.push({ svg: stoneSVG('stone'), nm: '灵石', n: g.stones });
+  if (rep.dupStones) items.push({ svg: stoneSVG('dup'), nm: '折价灵石', n: rep.dupStones });
   for (const [id, n] of Object.entries(g.herbs || {})) { const hb = data.byId.herbs.get(id); items.push({ svg: herbIcon(hb), nm: hb?.name || id, n }); }
   for (const p of g.pills || []) { const pid = p.pillId || p.id; const pl = data.byId.pills.get(pid); items.push({ svg: pillIcon(pl, p.q || 0), nm: `${QUALITY_NAMES[p.q || 0]}${pl?.name || pid}`, n: p.count || 1 }); }
   for (const id of g.treasures || []) { const t = data.byId.treasures.get(id); items.push({ svg: treasureIcon(t), nm: t?.name || id, n: 1, rare: true }); }
@@ -286,7 +294,7 @@ function renderReplay(el, app) {
   const pBar = inkBar(0, { cls: 'hp' });
   const eBar = inkBar(0, { cls: 'hp' });
   const expBar = inkBar(0, { cls: 'hp thin' });
-  const pBox = h('div', { class: 'fighter' }, h('div', { class: 'icon-box', html: placeholderIcon({ label: '我', color: PALETTE.ink1, seed: 'me' }) }), h('div', { class: 'info' }, h('div', { class: 'kai', text: app.game.state.player.name || '你' }), pBar));
+  const pBox = h('div', { class: 'fighter' }, h('div', { class: 'icon-box', html: playerPortrait() }), h('div', { class: 'info' }, h('div', { class: 'kai', text: app.game.state.player.name || '你' }), pBar));
   const eIcon = h('div', { class: 'icon-box' });
   const eName = h('div', { class: 'kai' });
   const eBox = h('div', { class: 'fighter right' }, eIcon, h('div', { class: 'info' }, eName, eBar));

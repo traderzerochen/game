@@ -137,7 +137,7 @@ class Sketch {
   /** 等宽细线（衣纹留白、傀儡丝、舌信） */
   line(pts, w, o = {}) { this.list.push({ k: 'line', pts: o.raw ? pts.map((p) => [p[0], p[1]]) : spline(pts, !!o.closed), c: o.c || this.ink, a: o.a ?? 1, w, closed: !!o.closed, nb: o.nb ?? (o.c === PAPER) }); }
   /** 点睛：点缀色圆点，glow 时带柔光晕 */
-  dot(x, y, r, o = {}) { this.list.push({ k: 'dot', x, y, r, c: o.c || this.acc, a: o.a ?? 1, glow: !!o.glow }); }
+  dot(x, y, r, o = {}) { this.list.push({ k: 'dot', x, y, r, c: o.c || this.acc, a: o.a ?? 1, glow: !!o.glow, gr: o.gr || 4, nb: o.nb }); }
   ell(x, y, rx, ry, o = {}) { this.list.push({ k: 'ell', x, y, rx, ry, rot: o.rot || 0, c: o.c || this.ink, a: o.a ?? 1 }); }
   /** 墨晕（径向渐隐），用于地面墨影、寒雾、火息 */
   wash(x, y, rx, ry, o = {}) { this.list.push({ k: 'wash', x, y, rx, ry, c: o.c || PALETTE.ink0, a: o.a ?? 0.2, nb: true }); }
@@ -827,6 +827,10 @@ function wraith(S, o) {
   S.brush([[-shW + 3, shY + 2], [(hand2[0] - shW) / 2 - 2, (shY + hand2[1]) / 2 + 2], hand2], mist ? 7 : 5, { w1: 2, head: 0.1, tail: 0.5, a: A * 0.6, dry: 0.5 });
   // 雾祟：兜帽披纱拖向身后
   if (mist) S.brush([[-2, headY - hr - 2], [-hr - 6, headY + 4 + f1], [-hr - 14 + sweep * 0.3, shY + 10 + f2 * 2], [-hr - 22 + sweep * 0.5, shY + 22 + f3 * 3]], 9, { w1: 2, head: 0.1, tail: 0.6, a: A * 0.7, dry: 0.7 });
+  // 残破披风：自肩后飘散，边缘参差
+  const cloak = [[-shW + 2, shY], [-shW - 5 + sweep * 0.2, shY + 10 + f1], [-shW - 12 + sweep * 0.4, waY - 2 + f2 * 1.5], [-shW - 18 + sweep * 0.6, waY + 10 + f3 * 2],
+    [-shW - 8 + sweep * 0.4, waY + 8], [-waW - 2, waY + 4], [-waW, shY + 10]];
+  S.blob(furry(S, cloak, 2.2), { a: A * 0.55, grad: [1, 0.3] });
   // 躯干：自胸口向下渐淡入烟
   S.blob([[3, neckY], [shW, shY + 2], [shW - 1.5, shY + 13], [waW + 2, waY], [0, waY + 6], [-waW - 3, waY + 1], [-shW + 1.5, shY + 13], [-shW, shY + 2], [-3, neckY]], { a: A, grad: [1, 0.35] });
   S.line([[-2.5, neckY + 0.5], [2, shY + 7], [4.5, shY + 12]], 0.8, { c: PAPER, a: 0.35 });
@@ -855,11 +859,11 @@ function wraith(S, o) {
     for (const d of [-0.5, 0, 0.5]) S.brush([hand, [hand[0] + Math.cos(dir + d) * 6, hand[1] + Math.sin(dir + d) * 6 + 1.5]], 1.6, { head: 0.05, tail: 0.8, dry: 0, a: A });
   }
   // 点光：双眼、心口
-  S.dot(4.2, headY - 0.6, 0.9, { glow: true });
-  S.dot(1.6, headY - 0.9, 0.8, { glow: true });
+  S.dot(4.2, headY - 0.6, 0.85, { glow: true, gr: 2.6 });
+  S.dot(1.6, headY - 0.9, 0.75, { glow: true, gr: 2.6 });
   const heart = pose === 'cast' ? 3.2 : pose === 'attack' ? 2.6 : 2 + Math.sin(S.t * 4 + ph) * 0.3;
-  S.wash(1.5, shY + 9, heart * 3, heart * 3, { c: S.acc, a: 0.45 });
-  S.dot(1.5, shY + 9, heart, { glow: true });
+  S.wash(1.5, shY + 9, heart * 2.2, heart * 2.2, { c: S.acc, a: 0.35 });
+  S.dot(1.5, shY + 9, heart * 0.8, { glow: true, gr: 3 });
   if (pose === 'cast') { S.dot(hand[0] + 1, hand[1] - 3, 1.8, { glow: true }); S.dot(hand2[0] - 1, hand2[1] - 3, 1.6, { glow: true }); }
   if (pose === 'attack') S.line([[hand[0] + 4, hand[1] - 12], [hand[0] + 12, hand[1] - 2], [hand[0] + 8, hand[1] + 10]], 1.2, { c: S.acc, a: 0.45, nb: true });
   return pose === 'attack' ? 0.1 : POSE_LEAN[pose] || 0;
@@ -875,9 +879,9 @@ function jiao(S, o) {
   S.wash(0, 0.5, 46, 4);
   // 首领气势：身后星辉
   S.wash(-2, -46, 52, 40, { c: S.acc, a: 0.16 });
-  for (const [x, y, r] of stars) S.dot(x, y, r, { glow: true, a: 0.85 });
+  for (const [x, y, r] of stars) S.dot(x, y, r, { glow: true, a: 0.85, nb: true });
   // 身躯中心线（头 → 尾）：颈上扬、前环、着地、背拱、尾梢上卷
-  const C = [[32 + hd, -76 * rise + hd], [25 + hd * 0.5, -66 * rise], [21, -53 * rise], [27, -40], [35, -27], [30, -13], [16, -7], [2, -11],
+  const C = [[32 + hd, -76 * rise + hd], [25 + hd * 0.5, -66 * rise], [20, -54 * rise], [30, -42], [40, -28], [34, -13], [18, -6], [3, -10],
     [-8, -10 - 16 * amp], [-20, -10 - 28 * amp], [-34, -10 - 26 * amp], [-43, -22], [-41, -9], [-31, -4], [-22, -6 - 3 * tailK], [-19, -13 - 6 * tailK]]
     .map(([x, y], i) => [x * spread + (i > 0 ? sw(i) : 0), y + (i > 0 ? sw(i + 3) * 0.6 : 0)]);
   // 足（后足在身后）
@@ -900,7 +904,7 @@ function jiao(S, o) {
   }
   // 前足
   const fb = lerp(C[3], C[4], 0.4), ft = atk ? [fb[0] + 14, fb[1] - 6] : [fb[0] + 10, -1];
-  S.brush([fb, [fb[0] + 7, (fb[1] + ft[1]) / 2 - 2], ft], 4.5, { w1: 2.4, head: 0.05, tail: 0.3, taper: 0.5, dry: 0.3, edge: 0.3 });
+  S.brush([fb, [fb[0] + 7, (fb[1] + ft[1]) / 2 - 2], ft], 5.5, { w1: 2.8, head: 0.05, tail: 0.3, taper: 0.5, dry: 0.3, edge: 0.3 });
   claw(ft, 1);
   // 头：长吻、下颌（出手时张口）
   const [hx, hy] = C[0];
@@ -919,7 +923,7 @@ function jiao(S, o) {
   S.brush([[hx + 15, hy - 3], [hx + 8, hy - 9 + wf(1)], [hx - 2 - 3 * wind, hy - 9 + wf(2) * 2], [hx - 12 - 5 * wind, hy - 4 + wf(3) * 3]], 1.1, { head: 0.05, tail: 0.8, dry: 0, a: 0.85 });
   for (let i = 0; i < 4; i++) S.brush([[hx - 4, hy - 3 + i * 2.5], [hx - 11 - 2 * wind, hy - 3 + i * 3.5 + wf(i) * 1.5], [hx - 17 - i - 3 * wind, hy + i * 4 + wf(i + 1) * 2]], 2.2, { head: 0.05, tail: 0.7, dry: 0.3 });
   S.line([[hx + 6, hy - 4.6], [hx + 11, hy - 4]], 0.6, { c: PAPER, a: 0.4, raw: true });
-  S.dot(hx + 8.5, hy - 2.6, 1.5, { glow: true });
+  S.dot(hx + 8.5, hy - 2.6, 1.3, { glow: true, gr: 3 });
   if (cast) { S.wash(hx + 26, hy - 10, 9, 9, { c: S.acc, a: 0.5 }); S.dot(hx + 26, hy - 10, 3.2, { glow: true }); S.dot(hx + 25, hy - 11, 1, { c: PAPER, a: 0.9 }); }
   return POSE_LEAN[pose] ? POSE_LEAN[pose] * 0.7 : 0;
 }
@@ -1003,11 +1007,11 @@ function canvasRender(ctx, list, glow) {
       ctx.stroke();
     } else if (s.k === 'dot') {
       if (s.glow) {
-        const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 4);
+        const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * s.gr);
         g.addColorStop(0, rgba(s.c, 0.75));
         g.addColorStop(1, rgba(s.c, 0));
         ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(s.x, s.y, s.r * 4, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.r * s.gr, 0, TAU); ctx.fill();
       }
       ctx.fillStyle = s.c;
       ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, TAU); ctx.fill();
@@ -1095,7 +1099,7 @@ function svgRender(list) {
     } else if (s.k === 'line') {
       out.push(`<path d="${dOf(s.pts, s.closed)}" fill="none" stroke="${s.c}" stroke-width="${f1(s.w) || 0.3}" stroke-linecap="round" stroke-linejoin="round"${op('stroke-opacity', s.a)}/>`);
     } else if (s.k === 'dot') {
-      if (s.glow) out.push(`<circle cx="${f1(s.x)}" cy="${f1(s.y)}" r="${f1(s.r * 4)}" fill="url(#${radialId(s.c, 0.75)})"/>`);
+      if (s.glow) out.push(`<circle cx="${f1(s.x)}" cy="${f1(s.y)}" r="${f1(s.r * s.gr)}" fill="url(#${radialId(s.c, 0.75)})"/>`);
       out.push(`<circle cx="${f1(s.x)}" cy="${f1(s.y)}" r="${f1(s.r)}" fill="${s.c}"${op('fill-opacity', s.a)}/>`);
     } else if (s.k === 'ell') {
       const rot = s.rot ? ` transform="rotate(${f1((s.rot * 180) / Math.PI)} ${f1(s.x)} ${f1(s.y)})"` : '';

@@ -347,6 +347,7 @@ export default DATA;
   alchemy: { level:1, xp:0 },
   buffs: [ {type:'qiRate', value:0.3, until:1234} ],
   pending: { breakthroughBonus:0, tribulationResist:0 },
+  pillToxicity: { stage:0, n:0 },   // 丹毒：本小境界内已服 qi 类丹药数，stage 不一致时视为 0
   injury: { until:0 },
   expeditions: { readyAt:{}, cleared:{} },
   garden: { acc:0, pending:0 },
