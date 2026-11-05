@@ -379,7 +379,10 @@ input[type="range"] { accent-color: var(--azurite); }
 .trib-overlay .ink-bar .lbl { color: var(--paper); mix-blend-mode: normal; }
 .trib-line { font-family: var(--font-kai); font-size: 17px; min-height: 1.6em; }
 .ending { text-align: left; }
-.ending-seal { text-align: center; margin: -4px 0 6px; }
+.ending-seal { text-align: center; margin: -8px 0 0; }
+.ending h3 { margin-top: 6px !important; font-size: 17px; }
+.ending p { margin: .2em 0; }
+.ending .kv { line-height: 1.45; }
 .ending-seal svg { display: inline-block; }
 .ending-ascend .ending-seal svg { filter: drop-shadow(0 0 8px var(--glow-gold)); }
 .furnace-box { display: flex; flex-direction: column; align-items: center; }

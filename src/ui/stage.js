@@ -58,7 +58,7 @@ export function createStage(container, { getQuality }) {
     renderScene(ctx, sceneKey, t, q, { w: W, h: H }, dt);
     if (ascend) tickAscend(dt);
     gate += (gateTarget - gate) * Math.min(1, dt * 1.5);
-    if (gate > 0.01) drawHeavenGate(ctx, { width: W, height: H, open: gate, t });
+    if (gate > 0.01) drawHeavenGate(ctx, { width: W, height: H, open: gate, t, intensity: mode === 'ascend' ? 0.55 : 1 });
 
     const L = layout();
     const [px, py] = L.p;

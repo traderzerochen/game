@@ -484,15 +484,16 @@ export function drawSkyCrack(ctx, { seed = 1, width, height, x0 = 0.15, y0 = 0.0
  * 天门：云开处的光柱与两柱一楣的门阙剪影。open 0–1 控制光柱宽度与亮度。
  * 动态元素（每帧调用），所以只用渐变和少量矩形，开销很小。
  */
-export function drawHeavenGate(ctx, { width, height, open = 1, t = 0, cx = 0.5, color = 'rgba(255,236,180,' }) {
+export function drawHeavenGate(ctx, { width, height, open = 1, t = 0, cx = 0.5, color = 'rgba(255,236,180,', intensity = 1 }) {
   if (open <= 0) return;
+  const I = intensity;
   const x = cx * width;
   const shaftW = width * (0.04 + 0.22 * open);
   ctx.save();
   // 光柱
   const g = ctx.createLinearGradient(x - shaftW, 0, x + shaftW, 0);
   g.addColorStop(0, `${color}0)`);
-  g.addColorStop(0.5, `${color}${(0.55 * open).toFixed(3)})`);
+  g.addColorStop(0.5, `${color}${(0.55 * open * I).toFixed(3)})`);
   g.addColorStop(1, `${color}0)`);
   ctx.fillStyle = g;
   ctx.globalCompositeOperation = 'lighter';
@@ -500,7 +501,7 @@ export function drawHeavenGate(ctx, { width, height, open = 1, t = 0, cx = 0.5, 
   // 门后天光
   const gy = height * 0.12;
   const halo = ctx.createRadialGradient(x, gy, 4, x, gy, width * 0.25 * (0.4 + open));
-  halo.addColorStop(0, `${color}${(0.9 * open).toFixed(3)})`);
+  halo.addColorStop(0, `${color}${(0.9 * open * I).toFixed(3)})`);
   halo.addColorStop(1, `${color}0)`);
   ctx.fillStyle = halo;
   ctx.beginPath(); ctx.arc(x, gy, width * 0.25 * (0.4 + open), 0, Math.PI * 2); ctx.fill();

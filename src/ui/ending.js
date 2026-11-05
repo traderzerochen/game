@@ -38,7 +38,7 @@ export function showEnding(app) {
   const next = previewLegacy(v.legacy || {}, id);
   const heart = data.byId.techniques.get(st.techniques.equipped.heart);
   const body = h('div', { class: `ending ending-${id}` },
-    h('div', { class: 'ending-seal', html: sealSVG(SEAL[id] || '终', { size: 72, color: id === 'ascend' ? '#c99a2e' : undefined }) }),
+    h('div', { class: 'ending-seal', html: sealSVG(SEAL[id] || '终', { size: 52, color: id === 'ascend' ? '#c99a2e' : undefined }) }),
     String(ed.text || '').split('\n').map((t) => h('p', { text: t })),
     h('h3', { class: 'kai', style: { marginTop: '12px' }, text: '此世' }),
     h('dl', { class: 'kv small' },
