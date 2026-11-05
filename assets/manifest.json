@@ -385,6 +385,110 @@
       "source": "self-made",
       "license": "project",
       "note": "stoneIcon：灵石 / 折价灵石（variant dup）"
+    },
+    {
+      "id": "scene.star_waste",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "星陨荒原：夜色、陨坑、残碑、星屑、流星"
+    },
+    {
+      "id": "scene.void_sea",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "归墟云海：云海、浮空断岛、雷云、天裂、无声闪电"
+    },
+    {
+      "id": "scene.tribulation_zixiao",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "紫霄雷劫（紫）"
+    },
+    {
+      "id": "scene.tribulation_jiuyou",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "九幽心雷劫（幽蓝，心魔影）"
+    },
+    {
+      "id": "scene.tribulation_dengqiong",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "登穹雷劫（金白，天门）"
+    },
+    {
+      "id": "scene.ascension",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "飞升天门接引"
+    },
+    {
+      "id": "scenery.stars",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "星空"
+    },
+    {
+      "id": "scenery.crater",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "陨坑"
+    },
+    {
+      "id": "scenery.stele",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "残碑"
+    },
+    {
+      "id": "scenery.floatingIsland",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "浮空断岛"
+    },
+    {
+      "id": "scenery.skyCrack",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "天裂"
+    },
+    {
+      "id": "scenery.heavenGate",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "天门光柱与门阙"
+    },
+    {
+      "id": "fx.boltThemes",
+      "type": "procedural",
+      "module": "src/art/fx.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "雷劫主题配色（default/zixiao/jiuyou/dengqiong）"
     }
   ]
 }
