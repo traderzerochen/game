@@ -13,6 +13,10 @@
     { "id": "icon.root", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
     { "id": "icon.enemyPortrait", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
     { "id": "seal", "type": "procedural", "module": "src/art/seal.js", "source": "self-made", "license": "project" },
-    { "id": "style.main", "type": "stylesheet", "module": "styles/main.css", "source": "self-made", "license": "project", "note": "宣纸纹理、卷轴、竹简、印章按钮、墨迹进度条均为纯 CSS" }
+    { "id": "style.main", "type": "stylesheet", "module": "styles/main.css", "source": "self-made", "license": "project", "note": "宣纸纹理、卷轴、竹简、印章按钮、墨迹进度条均为纯 CSS" },
+    { "id": "audio.synth", "type": "procedural", "module": "src/audio/synth.js", "source": "self-made", "license": "project", "note": "WebAudio 噪声/混响冲激/音色原语" },
+    { "id": "audio.ambient", "type": "procedural", "module": "src/audio/ambient.js", "source": "self-made", "license": "project", "note": "古琴五声音阶随机旋律 + 风声，实时合成" },
+    { "id": "audio.sfx", "type": "procedural", "module": "src/audio/sfx.js", "source": "self-made", "license": "project", "note": "钟、雷、丹成、剑鸣、木鱼等音效，实时合成" },
+    { "id": "audio.index", "type": "procedural", "module": "src/audio/index.js", "source": "self-made", "license": "project" }
   ]
 }
