@@ -175,3 +175,43 @@
 - 文案用简洁的半文半白，不堆砌辞藻。单条事件文本 ≤ 60 字。
 - 数值单位：灵气、灵石、年。
 - UI 按钮用两个字：修炼、破关、渡劫、炼丹、历练、功法、背包、设置。
+
+## 12. 元婴 / 化神扩展（阶段 3 新增）
+
+### 秘境
+| id | 名称 | realmReq | scene | 意境 |
+|---|---|---|---|---|
+| xingyun_yuan | 星陨荒原 | 9 | star_waste | 夜空下的陨坑荒原，星屑如雪，残碑斜立 |
+| guixu_yunhai | 归墟云海 | 12 | void_sea | 万丈云海之上的断岛与雷云，天光如裂 |
+
+### 敌人
+| id | 名称 | 元素 | art（原型/变体） | 出没 |
+|---|---|---|---|---|
+| xingsha_lang | 星煞狼 | metal | wolf | 星陨荒原 |
+| yunjing_kui | 陨晶傀 | earth | golem | 星陨荒原 |
+| xuanfeng_diao | 旋风雕 | wood | bird | 星陨荒原 |
+| xinmo_ying | 心魔影 | fire | wraith（新原型） | 星陨荒原 / 归墟云海 |
+| xingyun_jiao | 星陨古蛟 | water | jiao（新原型） | 星陨荒原首领 |
+| yunhai_sui | 云海祟 | water | wraith | 归墟云海 |
+| leijie_canhun | 雷劫残魂 | metal | humanoid（wanderer） | 归墟云海 |
+| taichu_leipeng | 太初雷鹏 | metal | bird | 归墟云海首领 |
+
+### 功法
+| id | 名称 | 类型 | 元素 | realmReq |
+|---|---|---|---|---|
+| xingchen_yinyue | 星沉引月篇 | heart | water | 9 |
+| jiuxiao_leiyin | 九霄雷音剑 | skill（damage） | metal | 9 |
+| xuanming_hushen | 玄溟护身罡 | body | none | 10 |
+| guixu_wanxiang | 归墟万象诀 | heart | none | 12 |
+
+### 法宝
+| id | 名称 | 槽位 | realmReq |
+|---|---|---|---|
+| xingyun_jian | 星陨剑 | weapon | 9 |
+| yunhai_hechang | 云海鹤氅 | armor | 9 |
+| bilei_zhu | 避雷珠 | charm（高阶渡劫减伤） | 11 |
+
+### 丹药
+| id | 名称 | 作用 |
+|---|---|---|
+| ningying_dan | 凝婴丹 | 渡劫减伤（高阶，realmReq 8） |
