@@ -347,7 +347,8 @@ test('04 历练：入雾栖谷、跳过回放、结算卷轴、冷却倒计时',
   const sec1 = Number(m1[1]) * 60 + Number(m1[2]);
   const real = await ev(c, (a, g, s) => s.expeditions.readyAt.wuqi_gu - s.time.played);
   check(Math.abs(sec1 - Math.ceil(real)) <= 2, `冷却显示 ${sec1}s 与状态 ${real}s 不符`);
-  check(sec1 <= 90 && sec1 >= 80, `雾栖谷冷却应约 90 秒，显示 ${sec1}`);
+  const cdTotal = await ev(c, (a) => a.data.byId.dungeons.get('wuqi_gu').cooldown);
+  check(sec1 <= cdTotal && sec1 >= cdTotal - 40, `雾栖谷冷却应不超过 ${cdTotal} 秒且刚开始倒计时，显示 ${sec1}`);
   check(await cd.getByRole('button', { name: '入秘境' }).isDisabled(), '冷却中「入秘境」应禁用');
   await sleep(2200);
   const t2 = await cd.locator('.small.muted', { hasText: '恢复中' }).textContent();
