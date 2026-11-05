@@ -15,7 +15,9 @@
 | `tests/simulation/` | lead | 整体模拟测试 |
 | `src/core/` `src/combat/` `src/save/` `tests/engine/` | engine | 逻辑引擎 |
 | `src/data/` `tests/data/` | content | 游戏数据与文本 |
-| `src/ui/` `src/art/` `src/audio/` `assets/` `styles/` `index.html` | ui-art | 界面、美术、音效 |
+| `src/ui/` `src/art/`（除下两行） `assets/` `styles/` `index.html` | ui-art | 界面、场景、特效、集成 |
+| `src/art/silhouette.js` `src/art/icons.js` | art-assets | 剪影与图标生成器（阶段 2 新增队友） |
+| `src/audio/` | audio | WebAudio 合成音效（阶段 2 新增队友） |
 
 规则：
 - 每人只改自己的目录。可以 **读** 别人的文件，**不能改**。
@@ -528,6 +530,7 @@ game.save() / game.load() → bool / game.reset() / game.exportSave() / game.imp
 | 日期 | 变更 | 通知对象 |
 |---|---|---|
 | 初版 | lead 建立 | 全员 |
+| P2 | 新增队友 art-assets、audio，接手剪影/图标与音频；接口：drawSilhouette/silhouetteSVG、createAudio({bus,getSettings}) | ui-art |
 | P1 | engine 实现差异：counters 增加 breakthroughFails；tribulations/tribulationFails 按「尝试/失败」计数 | lead |
 | P1 | ExpeditionReport 扩展：{ok,dungeonId,name,success,cleared,defeated,retreat,reason?,steps:[{index,kind,eventId,type('battle'\|'fortune'\|'trap'\|'gather'\|'boss'),name,text,passed,effects,gains:[{kind,id?,count}],hp,hpAfter,battle?}],stones,herbs,pills,treasures,techniques,clearReward,hpStart,hpEnd,maxHp,injured,gains}；battle 内含 playerMaxHp/enemyMaxHp/log/drops；boss 战超时 = retreat（不通关、不受伤、仍冷却） | ui-art |
 | P1 | canEnter 冷却中返回 {ok:false,reason:'cooldown',readyIn}；equipTechnique 的 slot 为 heart\|body\|skill；buy 的 kind 单复数均可 | ui-art |

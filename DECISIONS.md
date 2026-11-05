@@ -28,3 +28,4 @@
 | D22 | 炼丹页在阶段 1 已直接接入 craftInfo/craft；历练回放期间暂停底部日志刷新，避免剧透 | ui-art 提议，lead 批准 |
 | D23 | 「重置」会清除存档和传承；设置项为 {quality, autoQuality, volume, muted, replaySpeed} | ui-art 提议，lead 批准 |
 | D24 | 元婴、化神的扩展秘境不做：境界数据保留，飞升和陨落结局可以通过数据和测试达到 | 预算控制；完成标准只要求到金丹 |
+| D25 | 应用户要求，为 ui-art 增加 2 名队友：art-assets（Opus，剪影与正式图标）、audio（Sonnet，WebAudio）。按文件划分归属，ui-art 保留场景、特效、界面和集成 | 用户明确要求，覆盖最初「3 名队友不增加」的约束；按文件拆分可避免冲突 |
