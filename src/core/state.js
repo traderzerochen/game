@@ -54,6 +54,7 @@ export function createState({ seed = 1, name = '无名修士', legacy, now = 0 }
     buffs: [],
     pending: { breakthroughBonus: 0, tribulationResist: 0 },
     injury: { until: 0 },
+    pillToxicity: { stage: 0, n: 0 },
     expeditions: { readyAt: {}, cleared: {} },
     garden: { acc: 0, pending: 0 },
     battleConfig: { pillRules: [{ pillId: 'huichun_dan', below: 0.4 }] },

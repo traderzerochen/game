@@ -345,3 +345,182 @@ export function drawFurnace(ctx, x, y, size, { t = 0, heat = 0, ink = PALETTE.in
   ctx.fill();
   ctx.restore();
 }
+
+/** 星空：静态星点（大小、亮度由 seed 派生），只画在上部 */
+export function drawStars(ctx, { seed = 1, width, height, count = 120, color = '#f3ecdc' }) {
+  const rand = seededRandom(seed);
+  ctx.save();
+  for (let i = 0; i < count; i++) {
+    const x = rand() * width, y = Math.pow(rand(), 1.6) * height;
+    const r = rand() < 0.08 ? 1.4 + rand() : 0.4 + rand() * 0.8;
+    ctx.fillStyle = withAlpha(color, 0.35 + rand() * 0.6);
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    if (r > 1.4) { ctx.fillStyle = withAlpha(color, 0.12); ctx.beginPath(); ctx.arc(x, y, r * 4, 0, Math.PI * 2); ctx.fill(); }
+  }
+  ctx.restore();
+}
+
+/** 陨坑：扁椭圆坑口 + 外缘隆起的墨色坑唇 + 坑底积墨 */
+export function drawCrater(ctx, x, y, w, { seed = 1, ink = PALETTE.ink1 } = {}) {
+  const rand = seededRandom(seed);
+  const h = w * (0.18 + rand() * 0.06);
+  ctx.save();
+  const g = ctx.createRadialGradient(x, y, w * 0.05, x, y, w * 0.5);
+  g.addColorStop(0, withAlpha(ink, 0.75));
+  g.addColorStop(0.7, withAlpha(ink, 0.35));
+  g.addColorStop(1, withAlpha(ink, 0));
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(x, y, w * 0.5, h, 0, 0, Math.PI * 2); ctx.fill();
+  // 坑唇：上沿浓墨弧线 + 下沿淡笔
+  const rim = [];
+  for (let i = 0; i <= 12; i++) { const a = Math.PI + (i / 12) * Math.PI; rim.push([x + Math.cos(a) * w * 0.5 * (0.95 + rand() * 0.1), y + Math.sin(a) * h * (1 + rand() * 0.3)]); }
+  brushStroke(ctx, rim, { width: Math.max(1.5, w * 0.025), ink, dry: 0.5, seed, taper: 0.6 });
+  const lip = [];
+  for (let i = 0; i <= 8; i++) { const a = (i / 8) * Math.PI; lip.push([x + Math.cos(a) * w * 0.48, y + Math.sin(a) * h * 0.9]); }
+  brushStroke(ctx, lip, { width: Math.max(1, w * 0.012), ink, dry: 0.7, seed: seed + 1, alpha: 0.45 });
+  ctx.restore();
+}
+
+/** 残碑：斜立的断裂石碑，碑面刻痕，顶部断口；tilt 为倾角（弧度） */
+export function drawStele(ctx, x, y, h, { seed = 1, ink = PALETTE.ink1, tilt = null } = {}) {
+  const rand = seededRandom(seed);
+  const a = tilt ?? (rand() - 0.5) * 0.5;
+  const w = h * (0.28 + rand() * 0.08);
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(a);
+  // 碑身：顶部锯齿断口
+  ctx.fillStyle = withAlpha(ink, 0.88);
+  ctx.beginPath();
+  ctx.moveTo(-w / 2, 0);
+  ctx.lineTo(-w / 2, -h * (0.82 + rand() * 0.1));
+  const teeth = 4;
+  for (let i = 1; i <= teeth; i++) ctx.lineTo(-w / 2 + (i / teeth) * w, -h * (0.78 + rand() * 0.22));
+  ctx.lineTo(w / 2, 0);
+  ctx.closePath();
+  ctx.fill();
+  // 受光侧留白
+  ctx.fillStyle = withAlpha(PALETTE.paper, 0.12);
+  ctx.fillRect(-w / 2, -h * 0.78, w * 0.22, h * 0.78);
+  // 刻痕（竖排碑文意象）
+  ctx.strokeStyle = withAlpha(PALETTE.paper, 0.28);
+  ctx.lineWidth = Math.max(0.8, w * 0.035);
+  for (let c = 0; c < 2; c++) for (let k = 0; k < 5; k++) {
+    const cx = -w * 0.15 + c * w * 0.3, cy = -h * 0.68 + k * h * 0.12;
+    ctx.beginPath(); ctx.moveTo(cx - w * 0.06, cy); ctx.lineTo(cx + w * 0.06, cy + h * 0.02); ctx.stroke();
+  }
+  // 碑座
+  ctx.fillStyle = ink;
+  ctx.fillRect(-w * 0.7, -h * 0.05, w * 1.4, h * 0.06);
+  ctx.restore();
+  // 断落的碑块
+  drawRock(ctx, x + w * 1.1, y, w * 0.45, { seed: seed + 7, ink, flat: 0.5 });
+}
+
+/** 浮空断岛：上平下锥的岩体，顶上可长松，底部垂根与碎石 */
+export function drawFloatingIsland(ctx, x, y, w, { seed = 1, ink = PALETTE.ink1, pines = 1 } = {}) {
+  const rand = seededRandom(seed);
+  const depth = w * (0.55 + rand() * 0.3);
+  ctx.save();
+  // 岩体
+  const top = [];
+  for (let i = 0; i <= 8; i++) top.push([x - w / 2 + (i / 8) * w, y - Math.sin((i / 8) * Math.PI) * w * 0.06 - rand() * w * 0.03]);
+  const g = ctx.createLinearGradient(0, y, 0, y + depth);
+  g.addColorStop(0, withAlpha(ink, 0.92));
+  g.addColorStop(1, withAlpha(ink, 0.15));
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(top[0][0], top[0][1]);
+  for (const p of top) ctx.lineTo(p[0], p[1]);
+  const n = 6;
+  for (let i = 0; i <= n; i++) {
+    const u = 1 - i / n;
+    const px = x - w / 2 + u * w;
+    const d = Math.sin(u * Math.PI) * depth * (0.7 + rand() * 0.4);
+    ctx.lineTo(px + (rand() - 0.5) * w * 0.05, y + d);
+  }
+  ctx.closePath();
+  ctx.fill();
+  brushStroke(ctx, top, { width: Math.max(1.5, w * 0.025), ink, dry: 0.4, seed, taper: 0.5 });
+  // 垂根
+  ctx.strokeStyle = withAlpha(ink, 0.6);
+  ctx.lineWidth = Math.max(0.6, w * 0.006);
+  for (let i = 0; i < 5; i++) {
+    const rx = x + (rand() - 0.5) * w * 0.5, ry = y + depth * (0.3 + rand() * 0.3);
+    ctx.beginPath(); ctx.moveTo(rx, ry); ctx.quadraticCurveTo(rx + (rand() - 0.5) * 10, ry + depth * 0.3, rx + (rand() - 0.5) * 14, ry + depth * (0.4 + rand() * 0.3)); ctx.stroke();
+  }
+  // 碎石
+  ctx.fillStyle = withAlpha(ink, 0.7);
+  for (let i = 0; i < 3; i++) { const sx = x + (rand() - 0.5) * w * 0.7, sy = y + depth * (1 + rand() * 0.4); ctx.beginPath(); ctx.ellipse(sx, sy, w * 0.02 + rand() * w * 0.02, w * 0.015, rand(), 0, Math.PI * 2); ctx.fill(); }
+  ctx.restore();
+  for (let i = 0; i < pines; i++) drawPine(ctx, x + (rand() - 0.5) * w * 0.5, y - w * 0.03, w * (0.35 + rand() * 0.2), { seed: seed + i * 31, ink });
+}
+
+/** 天裂：天幕上一道不规则的亮缝（天光如裂），带柔光 */
+export function drawSkyCrack(ctx, { seed = 1, width, height, x0 = 0.15, y0 = 0.08, x1 = 0.85, y1 = 0.3, color = '#fffaf0', alpha = 0.9 }) {
+  const rand = seededRandom(seed);
+  const pts = [];
+  const n = 14;
+  for (let i = 0; i <= n; i++) {
+    const u = i / n;
+    pts.push([(x0 + (x1 - x0) * u) * width + (rand() - 0.5) * width * 0.03, (y0 + (y1 - y0) * u) * height + (rand() - 0.5) * height * 0.04]);
+  }
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  for (const [w, a] of [[height * 0.09, 0.08], [height * 0.04, 0.18], [height * 0.012, alpha]]) {
+    ctx.strokeStyle = withAlpha(color, a);
+    ctx.lineWidth = w;
+    ctx.beginPath();
+    pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/**
+ * 天门：云开处的光柱与两柱一楣的门阙剪影。open 0–1 控制光柱宽度与亮度。
+ * 动态元素（每帧调用），所以只用渐变和少量矩形，开销很小。
+ */
+export function drawHeavenGate(ctx, { width, height, open = 1, t = 0, cx = 0.5, color = 'rgba(255,236,180,' }) {
+  if (open <= 0) return;
+  const x = cx * width;
+  const shaftW = width * (0.04 + 0.22 * open);
+  ctx.save();
+  // 光柱
+  const g = ctx.createLinearGradient(x - shaftW, 0, x + shaftW, 0);
+  g.addColorStop(0, `${color}0)`);
+  g.addColorStop(0.5, `${color}${(0.55 * open).toFixed(3)})`);
+  g.addColorStop(1, `${color}0)`);
+  ctx.fillStyle = g;
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillRect(x - shaftW, 0, shaftW * 2, height);
+  // 门后天光
+  const gy = height * 0.12;
+  const halo = ctx.createRadialGradient(x, gy, 4, x, gy, width * 0.25 * (0.4 + open));
+  halo.addColorStop(0, `${color}${(0.9 * open).toFixed(3)})`);
+  halo.addColorStop(1, `${color}0)`);
+  ctx.fillStyle = halo;
+  ctx.beginPath(); ctx.arc(x, gy, width * 0.25 * (0.4 + open), 0, Math.PI * 2); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  // 门阙剪影：两柱一楣，随 open 显现
+  const gw = width * 0.12, gh = height * 0.14;
+  ctx.fillStyle = withAlpha(PALETTE.ink1, 0.55 * Math.min(1, open * 1.5));
+  ctx.fillRect(x - gw / 2, gy - gh * 0.1, gw * 0.08, gh);
+  ctx.fillRect(x + gw / 2 - gw * 0.08, gy - gh * 0.1, gw * 0.08, gh);
+  ctx.beginPath();
+  ctx.moveTo(x - gw * 0.7, gy - gh * 0.12);
+  ctx.quadraticCurveTo(x, gy - gh * 0.32, x + gw * 0.7, gy - gh * 0.12);
+  ctx.lineTo(x + gw * 0.6, gy);
+  ctx.lineTo(x - gw * 0.6, gy);
+  ctx.closePath();
+  ctx.fill();
+  // 光柱中上升的光尘
+  ctx.fillStyle = `${color}${(0.6 * open).toFixed(3)})`;
+  for (let i = 0; i < 16; i++) {
+    const px = x + Math.sin(i * 7.3 + t * 0.6) * shaftW * 0.6;
+    const py = height - ((t * 40 + i * 53) % height);
+    ctx.fillRect(px, py, 1.5, 1.5);
+  }
+  ctx.restore();
+}

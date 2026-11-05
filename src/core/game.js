@@ -13,6 +13,7 @@ import { lifespan, checkEnding, rebirth as rebirthFn } from './ending.js';
 import { computeStats } from '../combat/stats.js';
 import { createSaveManager } from '../save/save.js';
 import { num, clamp } from './util.js';
+import { pillToxicityView } from './alchemy.js';
 import * as ext from './gameExt.js';
 
 export function createGame({ data, storage, seed, now = () => Date.now() } = {}) {
@@ -62,6 +63,7 @@ export function createGame({ data, storage, seed, now = () => Date.now() } = {})
         buffs: state.buffs.filter((b) => b.until > state.time.played),
         roots: [...state.player.roots], rootTier, rootMult: num(rootTier?.mult, 1),
         stones: state.inventory.stones, played: state.time.played,
+        pillToxicity: pillToxicityView(state),
         gardenPending: state.garden.pending,
         ending: state.ending, legacy: state.legacy, name: state.player.name,
       };

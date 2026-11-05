@@ -64,6 +64,17 @@ export function craft(state, ctx, recipeId) {
   return out;
 }
 
+export const TOXICITY_DECAY = 0.6;
+/** 当前小境界内已服 qi 丹数量（stage 变化即清零） */
+export function toxicityN(state) {
+  const t = state.pillToxicity;
+  return t && t.stage === state.stage ? Math.max(0, Math.floor(num(t.n))) : 0;
+}
+export function pillToxicityView(state) {
+  const n = toxicityN(state);
+  return { n, nextMult: Math.pow(TOXICITY_DECAY, n) };
+}
+
 export function usePill(state, ctx, pillId, q) {
   const pill = ctx.data.byId.pills.get(pillId);
   q = Math.floor(num(q, -1));
@@ -75,13 +86,19 @@ export function usePill(state, ctx, pillId, q) {
   const v = num(e.value) * QUALITY_MULT[q];
   const realm = ctx.data.realm(state.stage);
   const res = { ok: true, type: e.type, value: v };
+  let tox = null;
   switch (e.type) {
     case 'qi': {
       const cap = qiCap(state, ctx);
       if (state.qi >= cap) return fail('invalid');
+      const n = toxicityN(state);
+      const mult = Math.pow(TOXICITY_DECAY, n);
       const before = state.qi;
-      state.qi = clamp(state.qi + v * num(realm.qiCost), 0, cap);
+      state.qi = clamp(state.qi + v * num(realm.qiCost) * mult, 0, cap);
       res.qiGained = state.qi - before;
+      state.pillToxicity = { stage: state.stage, n: n + 1 };
+      tox = { toxicity: n, mult };
+      Object.assign(res, tox);
       break;
     }
     case 'qiRate':
@@ -105,6 +122,6 @@ export function usePill(state, ctx, pillId, q) {
   }
   arr[q] -= 1;
   inc(state.counters.pillUsed, pillId);
-  ctx.bus.emit('pill:used', { pillId, q });
+  ctx.bus.emit('pill:used', { pillId, q, ...(tox || {}) });
   return res;
 }

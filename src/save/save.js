@@ -72,6 +72,11 @@ export function normalize(s) {
     .filter((b) => isObj(b) && typeof b.type === 'string' && Number.isFinite(b.value) && Number.isFinite(b.until))
     .map((b) => ({ type: b.type, value: b.value, until: b.until }));
   st.pending = { breakthroughBonus: 0, tribulationResist: 0, ...(isObj(st.pending) ? st.pending : {}) };
+  {
+    const pt = st.pillToxicity;
+    st.pillToxicity = isObj(pt) && Number.isInteger(pt.stage) && pt.stage >= 0 && Number.isInteger(pt.n) && pt.n >= 0
+      ? { stage: pt.stage, n: pt.n } : { stage: st.stage, n: 0 };
+  }
   st.injury = { until: 0, ...(isObj(st.injury) ? st.injury : {}) };
   st.expeditions = { readyAt: {}, cleared: {}, ...(isObj(st.expeditions) ? st.expeditions : {}) };
   st.garden = { acc: 0, pending: 0, ...(isObj(st.garden) ? st.garden : {}) };

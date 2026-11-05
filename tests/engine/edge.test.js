@@ -194,3 +194,48 @@ test('regression: rebirth rngState follows new state seed', async () => {
   const again = createState({ seed: g.state.seed, name: g.state.player.name, legacy: g.state.legacy, now: g.state.time.lastSeen }, g.data);
   assert.equal(g.state.rngState, again.rngState);
 });
+
+test('regression: pill toxicity decays qi pills within a stage', () => {
+  const g = mk(6);
+  g.state.stage = 3;
+  const cost = g.view().realm.qiCost;
+  g.state.inventory.pills.juling_dan = [5, 0, 0, 0];
+  const v = g.data.byId.pills.get('juling_dan').effect.value;
+  const got = [];
+  const seen = [];
+  g.bus.on('pill:used', (p) => seen.push(p));
+  assert.deepEqual(g.view().pillToxicity, { n: 0, nextMult: 1 });
+  for (let i = 0; i < 3; i++) { const r = g.usePill('juling_dan', 0); got.push(r.qiGained); assert.equal(r.toxicity, i); }
+  assert.ok(Math.abs(got[0] - v * cost) < 1e-6);
+  assert.ok(Math.abs(got[1] - v * cost * 0.6) < 1e-6);
+  assert.ok(Math.abs(got[2] - v * cost * 0.36) < 1e-6);
+  assert.equal(seen[2].toxicity, 2);
+  assert.ok(Math.abs(seen[2].mult - 0.36) < 1e-9);
+  const pv = g.view().pillToxicity;
+  assert.equal(pv.n, 3);
+  assert.ok(Math.abs(pv.nextMult - 0.216) < 1e-9);
+});
+
+test('regression: toxicity resets when stage changes', () => {
+  const g = mk(6);
+  g.state.inventory.pills.juling_dan = [5, 0, 0, 0];
+  g.usePill('juling_dan', 0); g.usePill('juling_dan', 0);
+  assert.equal(g.view().pillToxicity.n, 2);
+  g.state.qi = g.view().realm.qiCost;
+  g.state.legacy.breakBonus = 1;
+  assert.ok(g.breakthrough().success);
+  assert.deepEqual(g.view().pillToxicity, { n: 0, nextMult: 1 });
+  assert.equal(g.usePill('juling_dan', 0).toxicity, 0);
+});
+
+test('regression: old saves without pillToxicity load', async () => {
+  const g = mk(6);
+  const raw = JSON.parse(serialize(g.state));
+  delete raw.state.pillToxicity;
+  const h = mk(7);
+  assert.ok(h.importSave('MLWD1:' + Buffer.from(JSON.stringify(raw)).toString('base64')).ok);
+  assert.deepEqual(h.state.pillToxicity, { stage: h.state.stage, n: 0 });
+  raw.state.pillToxicity = { stage: -1, n: 'x' };
+  assert.ok(h.importSave('MLWD1:' + Buffer.from(JSON.stringify(raw)).toString('base64')).ok);
+  assert.equal(h.view().pillToxicity.n, 0);
+});

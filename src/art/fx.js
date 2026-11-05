@@ -4,6 +4,14 @@ import { PALETTE, withAlpha } from './palette.js';
 import { tier as tierOf } from './tiers.js';
 
 export const GLOW = { gold: PALETTE.glowGold, cyan: PALETTE.glowCyan, red: PALETTE.glowRed };
+
+/** 雷劫主题：外辉、雷芯、闪屏色 */
+export const BOLT_THEMES = {
+  default: { glow: GLOW.cyan, core: 'rgba(255,255,255,.95)', flash: '255,250,235' },
+  zixiao: { glow: 'rgba(190,140,255,.85)', core: 'rgba(250,240,255,.95)', flash: '236,222,255' },
+  jiuyou: { glow: 'rgba(90,140,255,.85)', core: 'rgba(215,232,255,.95)', flash: '196,214,255' },
+  dengqiong: { glow: GLOW.gold, core: 'rgba(255,255,246,1)', flash: '255,246,222' },
+};
 const rgba = (c, a) => c.replace(/[\d.]+\)$/, `${Math.max(0, Math.min(1, a)).toFixed(3)})`);
 
 /** 五行 → 柔光色（金、青、赤三色） */
@@ -88,21 +96,28 @@ export function createFx(quality = 'mid') {
     },
 
     /** 雷劫闪电：主干 + 分叉（档位决定分叉数），全屏闪白、震屏，落点墨晕散开 */
-    lightning(x0, y0, x1, y1, { power = 1 } = {}) {
+    lightning(x0, y0, x1, y1, { power = 1, theme = 'default', branches = null } = {}) {
+      const th = BOLT_THEMES[theme] || BOLT_THEMES.default;
       const paths = [jag(x0, y0, x1, y1, 6)];
-      for (let b = 1; b < T.bolts; b++) {
-        const src = paths[0][Math.floor(paths[0].length * (0.25 + Math.random() * 0.5))];
-        const ang = Math.atan2(y1 - y0, x1 - x0) + (Math.random() - 0.5) * 1.6;
-        const len = Math.hypot(x1 - x0, y1 - y0) * (0.2 + Math.random() * 0.3);
+      const nb = Math.max(1, Math.min(T.bolts, branches ?? T.bolts)); // 档位决定上限
+      for (let b = 1; b < nb; b++) {
+        const src = paths[0][Math.floor(paths[0].length * (0.15 + Math.random() * 0.6))];
+        const ang = Math.atan2(y1 - y0, x1 - x0) + (Math.random() - 0.5) * 1.8;
+        const len = Math.hypot(x1 - x0, y1 - y0) * (0.2 + Math.random() * 0.35);
         paths.push(jag(src[0], src[1], src[0] + Math.cos(ang) * len, src[1] + Math.sin(ang) * len, 4));
       }
-      bolts.push({ paths, age: 0, life: 0.5 });
-      flash = Math.min(1, 0.55 + 0.3 * power);
-      flashColor = '255,250,235';
-      shake = Math.max(shake, 0.35 * power);
+      bolts.push({ paths, age: 0, life: 0.5 + 0.1 * power, glow: th.glow, core: th.core, w: 1 + 0.25 * (power - 1) });
+      flash = Math.min(1, 0.5 + 0.3 * power);
+      flashColor = th.flash;
+      shake = Math.max(shake, 0.3 * power);
       blots.push({ x: x1, y: y1, r: 50 + 40 * power, age: 0, life: T.inkBloom ? 2.4 : 1.4 });
       if (T.inkBloom) for (let i = 0; i < 3; i++) blots.push({ x: x1 + (Math.random() - 0.5) * 120, y: y1 + (Math.random() - 0.3) * 40, r: 30 + Math.random() * 40, age: -0.15 * i, life: 2 });
-      this.burst(x1, y1, { color: GLOW.gold, power: 0.8 * power });
+      this.burst(x1, y1, { color: theme === 'default' ? GLOW.gold : th.glow, power: 0.8 * power });
+    },
+
+    /** 上升光尘（飞升接引） */
+    rise(x, y, { color = GLOW.gold, spread = 80, n = 4 } = {}) {
+      for (let i = 0; i < n * (T.particles / 150); i++) add({ kind: 'rise', x: x + (Math.random() - 0.5) * spread, y: y + Math.random() * 30, vx: (Math.random() - 0.5) * 10, vy: -40 - Math.random() * 60, age: 0, life: 1.5 + Math.random() * 1.5, r: 1 + Math.random() * 1.8, color });
     },
 
     /** 屏幕闪色（如丹成、结局） */
@@ -189,10 +204,10 @@ export function createFx(quality = 'mid') {
         const u = bt.age / bt.life;
         const flick = u < 0.15 || (u > 0.25 && u < 0.35) ? 1 : 0.45;
         bt.paths.forEach((path, i) => {
-          for (const [w, c] of blur ? [[9, GLOW.cyan], [2.5, 'rgba(255,255,255,.95)']] : [[2.5, 'rgba(255,255,250,.95)']]) {
+          for (const [w, c] of blur ? [[9, bt.glow], [2.5, bt.core]] : [[2.5, bt.core]]) {
             ctx.strokeStyle = rgba(c, (1 - u) * flick * (i ? 0.7 : 1));
-            ctx.lineWidth = w * (i ? 0.6 : 1);
-            if (blur && w > 3) { ctx.shadowColor = GLOW.cyan; ctx.shadowBlur = 18; }
+            ctx.lineWidth = w * (i ? 0.6 : 1) * bt.w;
+            if (blur && w > 3) { ctx.shadowColor = bt.glow; ctx.shadowBlur = 18; }
             ctx.beginPath();
             ctx.moveTo(path[0][0], path[0][1]);
             for (let k = 1; k < path.length; k++) ctx.lineTo(path[k][0], path[k][1]);
@@ -215,6 +230,7 @@ export function createFx(quality = 'mid') {
 const easeOut = (u) => 1 - (1 - u) * (1 - u);
 
 /** 中点位移生成锯齿闪电路径 */
+export function jagPath(x0, y0, x1, y1, depth) { return jag(x0, y0, x1, y1, depth); }
 function jag(x0, y0, x1, y1, depth) {
   let pts = [[x0, y0], [x1, y1]];
   let amp = Math.hypot(x1 - x0, y1 - y0) * 0.18;

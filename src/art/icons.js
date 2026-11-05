@@ -538,7 +538,7 @@ export function enemyPortrait(enemy, opts = {}) {
   I.def(`<clipPath id="${clip}"><circle cx="32" cy="32" r="28.5"/></clipPath>`);
   I.add(`<circle cx="32" cy="32" r="28.5" fill="${I.radial([[0, P.paper], [0.65, P.paperDeep], [1, mix(c, P.paperDeep, 0.55)]], { cx: 0.5, cy: 0.42, r: 0.62 })}"/>`);
   I.add(`<ellipse cx="32" cy="56" rx="26" ry="9" fill="${I.radial([[0, c, 0.35], [1, c, 0]])}" clip-path="url(#${clip})"/>`);
-  const tall = sil.archetype === 'humanoid' || sil.archetype === 'puppet';
+  const tall = sil.archetype === 'humanoid' || sil.archetype === 'puppet' || sil.archetype === 'wraith';
   const inner = silhouetteSVG(sil.archetype, { ...sil, crop: tall ? 'bust' : 'fit', size: 56, ink: P.ink0, className: 'sil' })
     .replace('<svg ', '<svg x="4" y="5" ');
   I.add(`<g clip-path="url(#${clip})">${inner}</g>`);

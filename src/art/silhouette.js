@@ -13,7 +13,7 @@ const TAU = Math.PI * 2;
 const PAPER = PALETTE.paper;
 const VB_W = 128, VB_H = 160, VB_GX = 64, VB_GY = 150, VB_S = 1.15;
 
-export const ARCHETYPES = ['humanoid', 'wolf', 'spider', 'puppet', 'toad', 'snake', 'golem', 'bird', 'beast', 'vine'];
+export const ARCHETYPES = ['humanoid', 'wolf', 'spider', 'puppet', 'toad', 'snake', 'golem', 'bird', 'beast', 'vine', 'wraith', 'jiao'];
 export const HUMANOID_VARIANTS = ['male', 'female', 'sword', 'alchemist', 'talisman', 'wanderer', 'meditate'];
 /** 每个原型可用的 variant（首项为默认） */
 export const VARIANTS = Object.freeze({
@@ -22,6 +22,7 @@ export const VARIANTS = Object.freeze({
   bird: ['crow', 'bat'],
   beast: ['qilin', 'turtle'],
   puppet: ['wood', 'sword'],
+  wraith: ['demon', 'mist'],
 });
 export const POSES = ['idle', 'attack', 'cast', 'hurt'];
 
@@ -787,7 +788,143 @@ function vine(S, o) {
   return POSE_LEAN[o.pose] || 0;
 }
 
-const BUILDERS = { humanoid, wolf, spider, puppet, toad, snake, golem, bird, beast, vine };
+/** 魂影（心魔 demon / 云海祟 mist）：半透明人形上身，下半身化作墨烟拖尾，无足；眼与心口点光 */
+function wraith(S, o) {
+  const mist = o.variant === 'mist';
+  const pose = o.pose;
+  // —— 参数：比例 + 烟形（种子决定拖尾的摆向、卷曲与烟缕）
+  const hr = S.v(7, 0.4), shW = S.v(mist ? 11 : 12, 0.8), waW = S.v(7, 0.6);
+  const sweep = S.v(0, 7), curl = S.v(1, 0.3), ph = S.r() * TAU;
+  const wisps = [0, 1, 2, 3].map(() => ({ dx: S.v(0, 8), dy: S.v(0, 6), k: S.v(1, 0.3), p: S.r() * TAU }));
+  const A = mist ? 0.6 : 0.78;
+  const bob = Math.sin(S.t * 1.5 + ph) * 2;
+  const f1 = S.fl(ph, 1.9), f2 = S.fl(ph + 1.7, 2.6), f3 = S.fl(ph + 3.1, 1.3);
+  const headY = -91 + bob, neckY = headY + hr + 1, shY = neckY + 3.5, waY = shY + 22;
+  S.wash(0, 0.5, 20, 2.6, { a: 0.1 });
+  S.wash(-8 + sweep * 0.5, -10, 26, 10, { c: S.acc, a: mist ? 0.12 : 0.16 });
+  // 墨烟拖尾：主烟 + 两缕副烟，末梢上卷
+  const tail = (dx, dy, k, p, w, a) => {
+    const g1 = Math.sin(S.t * 1.6 + p), g2 = Math.sin(S.t * 2.3 + p + 1);
+    S.brush([[0, waY - 2], [-3 + dx * 0.3, waY + 12], [-9 + dx * 0.6 + g1 * 2, waY + 26 + dy * 0.3], [-19 + dx + sweep + g2 * 2.5, -14 + dy],
+      [-30 + dx + sweep + g1 * 3, -7 + dy * 0.5], [-38 + dx + sweep * 1.2, -12 - 4 * k + g2 * 2], [-40 + dx + sweep * 1.2 + 4 * k, -20 - 6 * k + g1 * 2]],
+      w, { w1: w * 0.15, head: 0.02, tail: 0.55, taper: 0.95, dry: 0.8, a, wobble: 0.5 });
+  };
+  tail(wisps[0].dx, wisps[0].dy, wisps[0].k, wisps[0].p, 14, A * 0.45);
+  tail(wisps[1].dx * 0.6, wisps[1].dy, wisps[1].k, wisps[1].p, 10, A * 0.4);
+  tail(0, 0, curl, ph, 24, A * 0.85);
+  // 烟缕卷纹
+  for (const w of wisps.slice(2)) {
+    const x = -16 + w.dx + sweep * 0.8, y = -26 + w.dy, g = Math.sin(S.t * 1.8 + w.p);
+    S.line([[x + 6, y + 4], [x, y + g], [x - 5, y - 4], [x - 3, y - 8 * w.k], [x + 1, y - 6]], 0.7, { c: mist ? PAPER : PALETTE.ink2, a: 0.45, nb: true });
+  }
+  // 手位
+  let hand, hand2;
+  if (pose === 'attack') { hand = [shW + 20, shY + 4]; hand2 = [shW + 12, shY + 12]; }
+  else if (pose === 'cast') { hand = [shW + 6, shY - 14]; hand2 = [-shW - 6, shY - 12]; }
+  else if (pose === 'hurt') { hand = [shW + 6, shY - 6]; hand2 = [-shW - 8, shY + 2]; }
+  else { hand = [shW + 5, shY + 18 + f1]; hand2 = [-shW - 6, shY + 20 + f2]; }
+  // 后臂（淡）
+  S.brush([[-shW + 3, shY + 2], [(hand2[0] - shW) / 2 - 2, (shY + hand2[1]) / 2 + 2], hand2], mist ? 7 : 5, { w1: 2, head: 0.1, tail: 0.5, a: A * 0.6, dry: 0.5 });
+  // 雾祟：兜帽披纱拖向身后
+  if (mist) S.brush([[-2, headY - hr - 2], [-hr - 6, headY + 4 + f1], [-hr - 14 + sweep * 0.3, shY + 10 + f2 * 2], [-hr - 22 + sweep * 0.5, shY + 22 + f3 * 3]], 9, { w1: 2, head: 0.1, tail: 0.6, a: A * 0.7, dry: 0.7 });
+  // 躯干：自胸口向下渐淡入烟
+  S.blob([[3, neckY], [shW, shY + 2], [shW - 1.5, shY + 13], [waW + 2, waY], [0, waY + 6], [-waW - 3, waY + 1], [-shW + 1.5, shY + 13], [-shW, shY + 2], [-3, neckY]], { a: A, grad: [1, 0.35] });
+  S.line([[-2.5, neckY + 0.5], [2, shY + 7], [4.5, shY + 12]], 0.8, { c: PAPER, a: 0.35 });
+  // 头
+  S.ell(0, neckY - 1, 2.4, 2.8, { a: A });
+  S.ell(0.8, headY, hr * 0.92, hr, { a: A });
+  if (mist) {
+    S.blob([[-hr - 2.5, headY + hr + 3], [-hr - 2, headY - 3], [-1, headY - hr - 4], [hr + 1.5, headY - 3.5], [hr + 3.5, headY + 2], [hr + 1, headY + 1], [-1, headY + hr + 1]], { a: A * 0.95 });
+    S.line([[hr + 3, headY + 1], [hr - 1, headY - hr + 0.5], [-1, headY - hr - 3]], 0.7, { c: PAPER, a: 0.35 });
+  } else {
+    // 心魔：逆风上扬的乱发如焰 + 短角
+    for (let i = 0; i < 6; i++) {
+      const r0 = [-hr * 0.6 + i * 2.2, headY - hr + 1.5 + Math.abs(i - 2.5) * 0.6], g = Math.sin(S.t * 3 + ph + i);
+      S.brush([r0, [r0[0] - 5 - i * 0.6, r0[1] - 7 - (i % 2) * 3 + g], [r0[0] - 12 - i * 1.2, r0[1] - 9 - (i % 3) * 3 + g * 2]], 2.4, { head: 0.05, tail: 0.75, dry: 0, a: A });
+    }
+    S.brush([[3.5, headY - hr + 1.5], [6, headY - hr - 4], [5, headY - hr - 7.5]], 2, { head: 0.02, tail: 0.8, dry: 0, a: A });
+  }
+  // 前臂：心魔为利爪，雾祟为垂袖化烟
+  const s0 = [shW - 2, shY + 2];
+  if (mist) {
+    S.brush([s0, lerp(s0, hand, 0.5), hand], 8, { w1: 4, head: 0.1, tail: 0.2, taper: 0.5, a: A, dry: 0.6 });
+    S.brush([hand, [hand[0] - 3, hand[1] + 8 + f2], [hand[0] - 8, hand[1] + 15 + f3 * 2]], 5, { w1: 1, head: 0.05, tail: 0.6, a: A * 0.6, dry: 0.6 });
+  } else {
+    S.brush([s0, [(s0[0] + hand[0]) / 2, (s0[1] + hand[1]) / 2 + 2], hand], 5, { w1: 3, head: 0.1, tail: 0.1, taper: 0.4, a: A, dry: 0.4 });
+    const dir = Math.atan2(hand[1] - s0[1], hand[0] - s0[0]);
+    for (const d of [-0.5, 0, 0.5]) S.brush([hand, [hand[0] + Math.cos(dir + d) * 6, hand[1] + Math.sin(dir + d) * 6 + 1.5]], 1.6, { head: 0.05, tail: 0.8, dry: 0, a: A });
+  }
+  // 点光：双眼、心口
+  S.dot(4.2, headY - 0.6, 0.9, { glow: true });
+  S.dot(1.6, headY - 0.9, 0.8, { glow: true });
+  const heart = pose === 'cast' ? 3.2 : pose === 'attack' ? 2.6 : 2 + Math.sin(S.t * 4 + ph) * 0.3;
+  S.wash(1.5, shY + 9, heart * 3, heart * 3, { c: S.acc, a: 0.45 });
+  S.dot(1.5, shY + 9, heart, { glow: true });
+  if (pose === 'cast') { S.dot(hand[0] + 1, hand[1] - 3, 1.8, { glow: true }); S.dot(hand2[0] - 1, hand2[1] - 3, 1.6, { glow: true }); }
+  if (pose === 'attack') S.line([[hand[0] + 4, hand[1] - 12], [hand[0] + 12, hand[1] - 2], [hand[0] + 8, hand[1] + 10]], 1.2, { c: S.acc, a: 0.45, nb: true });
+  return pose === 'attack' ? 0.1 : POSE_LEAN[pose] || 0;
+}
+
+/** 蛟（星陨古蛟）：盘曲长身由少量参数控制，带鳞纹、背鳍、短角与长须；首领气势：身后星辉 */
+function jiao(S, o) {
+  const pose = o.pose, atk = pose === 'attack', cast = pose === 'cast';
+  const amp = S.v(1, 0.1), spread = S.v(1, 0.06), rise = S.v(1, 0.06), tailK = S.v(1, 0.25), ph = S.r() * TAU, wind = S.v(1, 0.2);
+  const stars = [0, 1, 2, 3, 4].map(() => [S.v(0, 44), S.v(-62, 30), 0.5 + S.r() * 0.8]);
+  const sw = (i) => Math.sin(S.t * 1.4 + ph + i * 0.55) * 1.4;
+  const hd = atk ? 4 : 0;
+  S.wash(0, 0.5, 46, 4);
+  // 首领气势：身后星辉
+  S.wash(-2, -46, 52, 40, { c: S.acc, a: 0.16 });
+  for (const [x, y, r] of stars) S.dot(x, y, r, { glow: true, a: 0.85 });
+  // 身躯中心线（头 → 尾）：颈上扬、前环、着地、背拱、尾梢上卷
+  const C = [[32 + hd, -76 * rise + hd], [25 + hd * 0.5, -66 * rise], [21, -53 * rise], [27, -40], [35, -27], [30, -13], [16, -7], [2, -11],
+    [-8, -10 - 16 * amp], [-20, -10 - 28 * amp], [-34, -10 - 26 * amp], [-43, -22], [-41, -9], [-31, -4], [-22, -6 - 3 * tailK], [-19, -13 - 6 * tailK]]
+    .map(([x, y], i) => [x * spread + (i > 0 ? sw(i) : 0), y + (i > 0 ? sw(i + 3) * 0.6 : 0)]);
+  // 足（后足在身后）
+  const claw = (p, a) => { for (const d of [-2.5, 0, 2.5]) S.line([p, [p[0] + d + 2.5, p[1] + 1.2]], 0.9, { raw: true, a }); };
+  S.brush([lerp(C[11], C[12], 0.5), [-48, -8], [-46, -1]], 4.5, { w1: 2.4, head: 0.05, tail: 0.3, taper: 0.5, dry: 0.3, a: 0.8 });
+  claw([-46, -1], 0.8);
+  const g = S.brush(C, 14, { w1: 3, head: 0.03, tail: 0.4, taper: 0.85, dry: 0.5, edge: 0.35 });
+  const n = g.c.length;
+  // 背鳍（朝上一侧）与鳞纹
+  for (let i = 5; i < n * 0.92; i += 5) {
+    const c = g.c[i], nm = g.nm[i], h = g.hw[i], s = nm[1] < 0 ? 1 : -1;
+    const up = [nm[0] * s, nm[1] * s], b = [c[0] + up[0] * h * 0.9, c[1] + up[1] * h * 0.9], tg = [-up[1], up[0]];
+    const len = 2.5 + h * 0.35;
+    S.poly([[b[0] - tg[0] * 1.8, b[1] - tg[1] * 1.8], [b[0] + up[0] * len - tg[0] * 1.6, b[1] + up[1] * len - tg[1] * 1.6], [b[0] + tg[0] * 1.8, b[1] + tg[1] * 1.8]]);
+    if (h > 2.5) {
+      const q = h * 0.55;
+      S.line([[c[0] + up[0] * q - tg[0] * 1.3, c[1] + up[1] * q - tg[1] * 1.3], [c[0] - tg[0] * 0.2, c[1] - tg[1] * 0.2], [c[0] - up[0] * q - tg[0] * 1.3, c[1] - up[1] * q - tg[1] * 1.3]], 0.55, { c: PAPER, a: 0.32, raw: true });
+      S.line([[c[0] - up[0] * h * 0.8, c[1] - up[1] * h * 0.8], [c[0] - up[0] * h * 0.55, c[1] - up[1] * h * 0.55]], 0.5, { c: PAPER, a: 0.3, raw: true });
+    }
+  }
+  // 前足
+  const fb = lerp(C[3], C[4], 0.4), ft = atk ? [fb[0] + 14, fb[1] - 6] : [fb[0] + 10, -1];
+  S.brush([fb, [fb[0] + 7, (fb[1] + ft[1]) / 2 - 2], ft], 4.5, { w1: 2.4, head: 0.05, tail: 0.3, taper: 0.5, dry: 0.3, edge: 0.3 });
+  claw(ft, 1);
+  // 头：长吻、下颌（出手时张口）
+  const [hx, hy] = C[0];
+  S.blob([[hx - 7, hy + 3], [hx - 4, hy - 5], [hx + 4, hy - 7], [hx + 12, hy - 5.5], [hx + 19, hy - 3], [hx + 20, hy - 0.5], atk ? [hx + 13, hy + 0.5] : [hx + 15, hy + 2.5], [hx + 6, hy + 5], [hx - 3, hy + 7]]);
+  if (atk) {
+    S.brush([[hx + 2, hy + 5], [hx + 10, hy + 6], [hx + 17, hy + 4]], 3.4, { head: 0.1, tail: 0.5, dry: 0 });
+    S.line([[hx + 12, hy + 0.8], [hx + 12.6, hy + 2.6]], 0.6, { c: PAPER, raw: true });
+    S.line([[hx + 15.5, hy + 0.5], [hx + 16, hy + 2.2]], 0.6, { c: PAPER, raw: true });
+    S.wash(hx + 28, hy + 1, 11, 6, { c: S.acc, a: 0.55 });
+  }
+  // 短角、须、鬃
+  S.brush([[hx + 1, hy - 5.5], [hx - 3, hy - 11], [hx - 8, hy - 13]], 2.6, { head: 0.02, tail: 0.75, dry: 0 });
+  S.brush([[hx + 4, hy - 6.5], [hx + 2, hy - 12], [hx - 2, hy - 15.5]], 2.2, { head: 0.02, tail: 0.75, dry: 0, a: 0.8 });
+  const wf = (k) => Math.sin(S.t * 2.4 + ph + k);
+  S.brush([[hx + 17, hy - 2], [hx + 12, hy + 6 + wf(0)], [hx + 2 - 3 * wind, hy + 10 + wf(1) * 2], [hx - 10 - 5 * wind, hy + 8 + wf(2) * 3]], 1.3, { head: 0.05, tail: 0.8, dry: 0 });
+  S.brush([[hx + 15, hy - 3], [hx + 8, hy - 9 + wf(1)], [hx - 2 - 3 * wind, hy - 9 + wf(2) * 2], [hx - 12 - 5 * wind, hy - 4 + wf(3) * 3]], 1.1, { head: 0.05, tail: 0.8, dry: 0, a: 0.85 });
+  for (let i = 0; i < 4; i++) S.brush([[hx - 4, hy - 3 + i * 2.5], [hx - 11 - 2 * wind, hy - 3 + i * 3.5 + wf(i) * 1.5], [hx - 17 - i - 3 * wind, hy + i * 4 + wf(i + 1) * 2]], 2.2, { head: 0.05, tail: 0.7, dry: 0.3 });
+  S.line([[hx + 6, hy - 4.6], [hx + 11, hy - 4]], 0.6, { c: PAPER, a: 0.4, raw: true });
+  S.dot(hx + 8.5, hy - 2.6, 1.5, { glow: true });
+  if (cast) { S.wash(hx + 26, hy - 10, 9, 9, { c: S.acc, a: 0.5 }); S.dot(hx + 26, hy - 10, 3.2, { glow: true }); S.dot(hx + 25, hy - 11, 1, { c: PAPER, a: 0.9 }); }
+  return POSE_LEAN[pose] ? POSE_LEAN[pose] * 0.7 : 0;
+}
+
+const BUILDERS = { humanoid, wolf, spider, puppet, toad, snake, golem, bird, beast, vine, wraith, jiao };
 
 // ---------------------------------------------------------------- 构建与包围盒
 
@@ -909,10 +1046,10 @@ function rgba(c, a) {
 /**
  * 在 Canvas 上绘制剪影，锚点为脚底中心 (x, y)。
  * @param {CanvasRenderingContext2D} ctx
- * @param {string} archetype  humanoid | wolf | spider | puppet | toad | snake | golem | bird | beast | vine
+ * @param {string} archetype  humanoid | wolf | spider | puppet | toad | snake | golem | bird | beast | vine | wraith | jiao
  * @param {{seed?:any, scale?:number, ink?:string, accent?:string, x?:number, y?:number,
  *          pose?:'idle'|'attack'|'cast'|'hurt', variant?:string, facing?:1|-1, t?:number, alpha?:number, glow?:string|null}} opts
- *   variant：humanoid → male|female|sword|alchemist|talisman|wanderer|meditate；spider → scorpion；bird → bat；beast → turtle；puppet → wood|sword
+ *   variant：humanoid → male|female|sword|alchemist|talisman|wanderer|meditate；spider → scorpion；bird → bat；beast → turtle；puppet → wood|sword；wraith → demon|mist
  *   t：动画时间（秒），驱动衣袂、发丝、拍翅、呼吸；glow：柔光颜色（shadowColor）
  */
 export function drawSilhouette(ctx, archetype, opts = {}) {
@@ -1023,15 +1160,20 @@ export function silhouetteSVG(archetype, opts = {}) {
  */
 export function enemySilhouette(enemy) {
   if (!enemy) return { archetype: 'beast', seed: 'unknown', accent: PALETTE.ink2 };
-  const archetype = BUILDERS[enemy.art] ? enemy.art : 'beast';
+  // art 可写成 'humanoid' 或 'humanoid/wanderer'；也接受 enemy.variant / enemy.artVariant 显式指定
+  const [art, artVar] = String(enemy.art || '').split(/[/:]/);
+  const archetype = BUILDERS[art] ? art : 'beast';
   const nm = `${enemy.name || ''}${enemy.id || ''}`;
+  const explicit = enemy.variant || enemy.artVariant || artVar;
   let variant;
-  if (archetype === 'humanoid') {
-    variant = /散修|游/.test(nm) ? 'wanderer' : /剑/.test(nm) ? 'sword' : /丹|药/.test(nm) ? 'alchemist' : /符|堕道|魔/.test(nm) ? 'talisman' : /女|仙子|姬/.test(nm) ? 'female' : 'male';
+  if (explicit && (VARIANTS[archetype] || []).includes(explicit)) variant = explicit;
+  else if (archetype === 'humanoid') {
+    variant = /散修|游|残魂/.test(nm) ? 'wanderer' : /剑/.test(nm) ? 'sword' : /丹|药/.test(nm) ? 'alchemist' : /符|堕道|魔/.test(nm) ? 'talisman' : /女|仙子|姬/.test(nm) ? 'female' : 'male';
   } else if (archetype === 'spider') variant = /蝎|xie/.test(nm) ? 'scorpion' : 'spider';
   else if (archetype === 'bird') variant = /蝠|bianfu/.test(nm) ? 'bat' : 'crow';
   else if (archetype === 'beast') variant = /鼋|龟|yuan_|gui_/.test(nm) && !/渊/.test(nm) ? 'turtle' : 'qilin';
   else if (archetype === 'puppet') variant = /剑/.test(nm) ? 'sword' : 'wood';
+  else if (archetype === 'wraith') variant = /祟|雾|云海|sui/.test(nm) ? 'mist' : 'demon';
   return { archetype, variant, seed: enemy.id || enemy.name || archetype, accent: elementColor(enemy.element) };
 }
 

@@ -190,7 +190,7 @@ xp：成功 +3 × recipe.tier，失败 +1；xp ≥ 10 × L 时升级（多余部
 
 | type | 使用方式 | 效果 |
 |---|---|---|
-| `qi` | usePill | 立即获得 v × realm.qiCost 点灵气（受 qiCap 限制） |
+| `qi` | usePill | 立即获得 v × realm.qiCost × 0.6^n 点灵气（受 qiCap 限制）。n 为「丹毒」，即本小境界内已服用的 qi 类丹药数，换境界后清零（state.pillToxicity = {stage, n}） |
 | `qiRate` | usePill | 加 buff：修炼 +v，持续 duration 秒；同类 buff 只刷新，不叠加，保留更高值 |
 | `breakthrough` | usePill | pending.breakthroughBonus += v，上限 0.3 |
 | `tribulation` | usePill | pending.tribulationResist += v，上限 0.3 |
@@ -545,6 +545,7 @@ game.save() / game.load() → bool / game.reset() / game.exportSave() / game.imp
 | 日期 | 变更 | 通知对象 |
 |---|---|---|
 | 初版 | lead 建立 | 全员 |
+| P4 | 丹毒：qi 类丹药在同一小境界内效果按 0.6^n 递减；view().pillToxicity = {n, nextMult} | engine, ui-art |
 | P2 | 新增队友 art-assets、audio，接手剪影/图标与音频；接口：drawSilhouette/silhouetteSVG、createAudio({bus,getSettings}) | ui-art |
 | P1 | engine 实现差异：counters 增加 breakthroughFails；tribulations/tribulationFails 按「尝试/失败」计数 | lead |
 | P1 | ExpeditionReport 扩展：{ok,dungeonId,name,success,cleared,defeated,retreat,reason?,steps:[{index,kind,eventId,type('battle'\|'fortune'\|'trap'\|'gather'\|'boss'),name,text,passed,effects,gains:[{kind,id?,count}],hp,hpAfter,battle?}],stones,herbs,pills,treasures,techniques,clearReward,hpStart,hpEnd,maxHp,injured,gains}；battle 内含 playerMaxHp/enemyMaxHp/log/drops；boss 战超时 = retreat（不通关、不受伤、仍冷却） | ui-art |
