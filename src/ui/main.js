@@ -242,7 +242,7 @@ function boot() {
     if (app.started) game.tick(Date.now());
     monitor.frame(dt);
     let v = null;
-    if (now - lastUpdate >= UPDATE_MS) {
+    if (now - lastUpdate >= UPDATE_MS && !app.cinematic) {
       lastUpdate = now;
       v = updateTop();
       if (app.page && app.page.update) app.page.update(app, v);

@@ -27,7 +27,8 @@ export function openTribulation(app) {
   const draw = () => {
     const I = game.tribulationInfo() || info;
     body.innerHTML = '';
-    body.append(
+    const add = (...xs) => body.append(...xs.filter(Boolean));
+    add(
       h('p', { class: 'noindent', text: tpl(data.texts.tribulation?.start || '{name}将至。', { name: I.name }) }),
       h('dl', { class: 'kv small' },
         h('dt', { text: '天雷' }), h('dd', { text: `${I.rounds} 道 · 威能 ×${I.power}` }),
