@@ -654,6 +654,178 @@ test('10 结局：寿元耗尽、结局卷轴、转世重修', async () => {
   await c.context.close();
 });
 
+
+// ---------- 后期用例（元婴、化神扩展） ----------
+const fillQi = (c) => ev(c, (a, g, s) => { const cost = g.view().realm.qiCost; let n = 0; while (s.qi < cost && n++ < 5000) g.advance(3600); s.player.age = 16; });
+const trialBtn = (c) => c.page.locator('.panel-wrap .seal-btn', { hasText: '渡劫' });
+
+test('13 后期秘境：stage 9 星陨荒原、stage 12 归墟云海', async () => {
+  for (const [stage, name, id] of [[9, '星陨荒原', 'xingyun_yuan'], [12, '归墟云海', 'guixu_yunhai']]) {
+    const c = await newCtx();
+    await startGame(c);
+    await setup(c, (a, g, s, st) => { s.stage = st; s.player.age = 16; }, stage);
+    await nav(c, '历练');
+    const card = c.page.locator('.card', { hasText: name }).first();
+    check(await card.count() === 1, `秘境列表缺少 ${name}`);
+    await shot(c, `13-${id}-list`);
+    const enter = card.getByRole('button', { name: '入秘境' });
+    check(await enter.isEnabled(), `stage ${stage} 应可进入 ${name}`);
+    await enter.click();
+    await c.page.getByRole('button', { name: '跳过' }).waitFor({ timeout: 5000 });
+    const sceneKey = await ev(c, (a) => a.stage.scene);
+    check(sceneKey && sceneKey !== 'home', `回放期间舞台场景异常：${sceneKey}`);
+    await sleep(1500);
+    await shot(c, `13-${id}-replay`);
+    const fighting = await c.page.waitForFunction(() => { const f = document.querySelector('.fighters'); return f && getComputedStyle(f).visibility === 'visible'; }, null, { timeout: 12000 }).then(() => true, () => false);
+    if (fighting) { await sleep(600); await shot(c, `13-${id}-battle`); }
+    await c.page.getByRole('button', { name: '跳过' }).click();
+    const modal = c.page.locator('.modal-mask .modal');
+    await modal.waitFor({ timeout: 8000 });
+    const title = await modal.locator('.scroll-title').textContent();
+    check(title.includes(name), `结算卷轴标题异常：${title}`);
+    await shot(c, `13-${id}-settle`);
+    await modal.getByRole('button', { name: '收卷' }).click();
+    await c.page.waitForFunction(() => !document.querySelector('.modal-mask'));
+    await sleep(500);
+    check(await ev(c, (a) => a.stage.scene) === 'home', '结算后舞台应回到 home');
+    check((await c.page.locator('.card', { hasText: name }).first().textContent()).includes('恢复中'), `${name} 结算后应进入冷却`);
+    notes.push(`13 ${name}：${title}`);
+    check(c.errors.length === 0, c.errors.join('\n'));
+    await c.context.close();
+  }
+});
+
+/** 点「渡劫」→「引雷渡劫」，等待结果，返回 {kind:'result'|'ending', title, scenes} */
+async function runTribulationUi(c, tag) {
+  const modal = c.page.locator('.modal-mask .modal');
+  await trialBtn(c).click();
+  await modal.waitFor({ timeout: 3000 });
+  await shot(c, `${tag}-prepare`);
+  await modal.getByRole('button', { name: '引雷渡劫' }).click();
+  await c.page.locator('.trib-overlay').waitFor({ timeout: 4000 }).catch(() => { throw new Fail('点「引雷渡劫」后无劫雷面板'); });
+  const scenes = new Set();
+  let strikeShot = false, t0 = Date.now();
+  while (Date.now() - t0 < 60000) {
+    scenes.add(await ev(c, (a) => a.stage.scene));
+    if (!strikeShot) { await sleep(1500); await shot(c, `${tag}-strike`); strikeShot = true; }
+    if (await modal.count()) break;
+    await sleep(150);
+  }
+  check(await modal.count(), '渡劫后 60 秒内未出现结果卷轴');
+  await sleep(300);
+  const title = (await modal.locator('.scroll-title').textContent()).trim();
+  const kind = /渡劫功成|渡劫失败/.test(title) ? 'result' : 'ending';
+  return { kind, title, scenes: [...scenes] };
+}
+
+test('14 飞升：登穹雷劫、飞升演出、结局卷轴、转世', async () => {
+  const c = await newCtx();
+  await startGame(c, '问天客');
+  await setup(c, (a, g, s) => { s.stage = 14; s.player.age = 16; a.settings.replaySpeed = 2; });
+  await c.page.locator('.topbar .realm', { hasText: '化神后期' }).waitFor();
+  await fillQi(c);
+  await c.page.waitForFunction(() => { const b = [...document.querySelectorAll('.panel-wrap .seal-btn')].find((x) => x.textContent === '渡劫'); return b && !b.disabled; }, null, { timeout: 5000 });
+  await shot(c, '14-ready');
+  let out = null;
+  for (let i = 0; i < 8; i++) {
+    await ev(c, (a, g, s) => { s.pending.tribulationResist = 0.85; s.injury.until = 0; s.inventory.pills.huichun_dan = [0, 0, 0, 9]; });
+    out = await runTribulationUi(c, `14-try${i}`);
+    if (out.kind === 'ending') break;
+    check(out.title.includes('渡劫失败'), `非预期结果卷轴：${out.title}`);
+    await c.page.locator('.modal-mask').getByRole('button', { name: '知晓' }).click();
+    await c.page.waitForFunction(() => !document.querySelector('.modal-mask'));
+    await fillQi(c);
+    await sleep(600);
+  }
+  check(out && out.kind === 'ending', '多次尝试仍未飞升成功');
+  const endingId = await ev(c, (a, g, s) => s.ending && s.ending.id);
+  check(endingId === 'ascend', `结局应为 ascend，实为 ${endingId}（${out.title}）`);
+  // 飞升演出：期间舞台场景应为 ascension，演出后才出现结局卷轴
+  notes.push(`14 飞升：渡劫阶段场景 ${out.scenes.join('>')}，结局卷轴标题「${out.title}」`);
+  await shot(c, '14-ending');
+  const body = await c.page.locator('.modal-mask .modal').textContent();
+  check(/转世重修/.test(body), '结局卷轴缺少「转世重修」');
+  const rb = c.page.locator('.modal-mask').getByRole('button', { name: '转世重修' });
+  check(await rb.isVisible() && await rb.isEnabled(), '「转世重修」不可见或不可点');
+  check(/飞升|登仙|天门/.test(out.title + body), '结局卷轴文案不像飞升');
+  await rb.click();
+  await c.page.waitForFunction(() => !document.querySelector('.modal-mask'));
+  const r = await ev(c, (a, g, s) => ({ ending: s.ending, lives: s.legacy.lives, stage: s.stage, qiBonus: s.legacy.qiBonus }));
+  check(r.ending == null && r.lives === 1 && r.stage === 0 && r.qiBonus >= 0.2, `飞升转世状态异常：${JSON.stringify(r)}`);
+  await sleep(500);
+  await shot(c, '14-rebirth');
+  check(await ev(c, (a) => a.stage.scene) === 'home', '转世后舞台应为 home');
+  check(c.errors.length === 0, c.errors.join('\n'));
+  await c.context.close();
+});
+
+test('15 陨落：金丹后期紫霄雷劫失败陨落、结局卷轴、转世', async () => {
+  const c = await newCtx();
+  await startGame(c, '陨星客');
+  await setup(c, (a, g, s) => { s.stage = 8; s.player.age = 16; a.settings.replaySpeed = 4; });
+  await c.page.locator('.topbar .realm', { hasText: '金丹后期' }).waitFor();
+  await fillQi(c);
+  await c.page.waitForFunction(() => { const b = [...document.querySelectorAll('.panel-wrap .seal-btn')].find((x) => x.textContent === '渡劫'); return b && !b.disabled; }, null, { timeout: 5000 });
+  let out = null, tries = 0;
+  for (; tries < 25; tries++) {
+    await ev(c, (a, g, s) => { s.pending.tribulationResist = 0; s.injury.until = 0; s.treasures = { weapon: null, armor: null, charm: null }; });
+    out = await runTribulationUi(c, `15-try${tries}`);
+    if (out.kind === 'ending') break;
+    check(out.title.includes('渡劫失败'), `金丹后期无准备渡劫应失败，实为：${out.title}`);
+    await c.page.locator('.modal-mask').getByRole('button', { name: '知晓' }).click();
+    await c.page.waitForFunction(() => !document.querySelector('.modal-mask'));
+    await fillQi(c);
+    await sleep(500);
+  }
+  check(out && out.kind === 'ending', `${tries} 次失败后仍未触发陨落（25% 概率）`);
+  const endingId = await ev(c, (a, g, s) => s.ending && s.ending.id);
+  check(endingId === 'fallen', `结局应为 fallen，实为 ${endingId}`);
+  notes.push(`15 陨落：第 ${tries + 1} 次渡劫陨落，结局卷轴「${out.title}」`);
+  await shot(c, '15-ending');
+  const rb = c.page.locator('.modal-mask').getByRole('button', { name: '转世重修' });
+  check(await rb.isVisible() && await rb.isEnabled(), '「转世重修」不可见或不可点');
+  await rb.click();
+  await c.page.waitForFunction(() => !document.querySelector('.modal-mask'));
+  const r = await ev(c, (a, g, s) => ({ ending: s.ending, lives: s.legacy.lives, stage: s.stage, name: s.player.name }));
+  check(r.ending == null && r.lives === 1 && r.stage === 0 && r.name === '陨星客', `陨落转世状态异常：${JSON.stringify(r)}`);
+  await sleep(500);
+  await shot(c, '15-rebirth');
+  check((await realmText(c)).includes('炼气前期'), '转世后顶栏应为炼气前期');
+  check(c.errors.length === 0, c.errors.join('\n'));
+  await c.context.close();
+});
+
+test('16 丹毒：背包提示与服丹浮字', async () => {
+  const c = await newCtx();
+  await startGame(c);
+  await setup(c, (a, g, s) => { s.inventory.pills.juling_dan = [5, 0, 0, 0]; });
+  await nav(c, '背包');
+  const box = section(c, '丹药');
+  const hint = await box.locator('.toxicity').textContent();
+  check(/丹毒 0 层/.test(hint) && /0\.6/.test(hint), `丹毒提示异常：${hint}`);
+  check(/无毒/.test(await box.locator('.item .tox').first().textContent()), '未服丹时应显示「无毒」');
+  await shot(c, '16-tox-0');
+  const q0 = await ev(c, (a, g, s) => s.qi);
+  await box.locator('.item', { hasText: '聚灵丹' }).click();
+  const q1 = await ev(c, (a, g, s) => s.qi);
+  const gain1 = q1 - q0;
+  await expectToast(c, /服下|灵气/);
+  await sleep(300);
+  const hint2 = await section(c, '丹药').locator('.toxicity').textContent();
+  check(/丹毒 1 层/.test(hint2) && /0\.6/.test(hint2), `服一颗后应为丹毒 1 层 ×0.6：${hint2}`);
+  check(/毒1/.test(await section(c, '丹药').locator('.item .tox').first().textContent()), '丹药格应显示「毒1」');
+  await section(c, '丹药').locator('.item', { hasText: '聚灵丹' }).click();
+  const q2 = await ev(c, (a, g, s) => s.qi);
+  const gain2 = q2 - q1;
+  check(gain2 < gain1 * 0.75 && gain2 > 0, `第二颗药效应衰减：${gain1} -> ${gain2}`);
+  await expectToast(c, /丹毒 1 层/);
+  await shot(c, '16-tox-2');
+  const texts = await toastText(c);
+  notes.push(`16 丹毒：第一颗 +${gain1.toFixed(0)}，第二颗 +${gain2.toFixed(0)}，浮字 ${texts.filter((t) => /丹毒/.test(t)).join('|')}`);
+  check(c.errors.length === 0, c.errors.join('\n'));
+  await c.context.close();
+});
+
 for (const [vname, viewport] of [['desktop', { width: 1440, height: 900 }], ['mobile', { width: 390, height: 844 }]]) {
   test(`11 视口 ${vname} ${viewport.width}x${viewport.height}：无溢出、遮挡、横向滚动条`, async () => {
     const c = await newCtx({ viewport });
