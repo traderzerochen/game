@@ -79,6 +79,7 @@ function startReplay(app, report) {
     report, dungeon: dg,
     tl: buildTimeline(report, app.data),
     i: 0, lines: [], fighter: null, hp: report.hpStart, maxHp: report.maxHp, done: false, timer: 0, app,
+    playerEl: app.data.byId.techniques.get(app.game.state.techniques.equipped.heart)?.element || 'none',
   };
   app.stage.setScene(dg?.scene || 'mist_valley', dg?.name);
   app.replaying = true; // 回放期间暂缓刷新日志，避免剧透结果
@@ -104,7 +105,7 @@ function stepReplay() {
   schedule(delay / speed());
 }
 
-function apply(item) {
+function apply(item, quiet = false) {
   const R = replay;
   switch (item.t) {
     case 'step': R.lines.push({ cls: 'step', text: item.text }); R.fighter = null; return STEP_MS * 0.6;
@@ -112,6 +113,7 @@ function apply(item) {
     case 'battle':
       R.fighter = { enemy: item.enemy, name: item.name, pHp: item.pHp, pMax: item.pMax, eHp: item.eMax, eMax: item.eMax, hit: null };
       R.lines.push({ cls: '', text: `${item.name}拦住去路！` });
+      if (item.enemy) R.app.stage.setEnemy(item.enemy);
       return STEP_MS * 0.6;
     case 'ev': {
       const ev = item.ev;
@@ -121,10 +123,17 @@ function apply(item) {
         R.fighter.hit = ev.dmg != null ? (ev.actor === 'player' ? 'enemy' : 'player') : null;
       }
       R.lines.push({ cls: ev.crit ? 'crit' : ev.heal ? 'heal' : '', text: evText(ev, item.ename) });
-      if (R.app.fx && R.fighter?.hit) R.app.fx.strike?.(ev.actor, ev);
+      if (!quiet) {
+        R.app.stage.strike(ev, R.playerEl);
+        if (ev.crit) R.app.audio?.play('sword');
+      }
       return EV_MS;
     }
-    case 'battleEnd': R.lines.push({ cls: item.cls, text: item.text }); if (R.fighter) R.fighter.hit = null; return STEP_MS * 0.7;
+    case 'battleEnd':
+      R.lines.push({ cls: item.cls, text: item.text });
+      if (R.fighter) R.fighter.hit = null;
+      setTimeout(() => { if (replay === R && !R.done) R.app.stage.setEnemy(null); }, 500);
+      return STEP_MS * 0.7;
     case 'hp': R.hp = item.hp; return 0;
     default: return 0;
   }
@@ -136,7 +145,7 @@ function skipAll() {
   while (replay.i < replay.tl.length) {
     const it = replay.tl[replay.i++];
     if (it.t === 'end') break;
-    apply(it);
+    apply(it, true);
   }
   paint();
   finish();

@@ -75,12 +75,12 @@ function renderBreak(box, app, v) {
   if (v.ending) { box.appendChild(h('div', { class: 'desc', text: '此世已了。' })); return; }
   const row = h('div', { class: 'row' });
   if (bt.isMajor) {
-    const tr = v.tribulation || v.realm?.tribulation;
+    const tr = v.tribulation || {};
     row.append(
-      sealButton('渡劫', () => app.openTribulation ? app.openTribulation() : app.toast('雷劫之门尚未开启（阶段 2）'), { disabled: !game.tribulation || v.qi < bt.cost, cls: 'blue' }),
+      sealButton('渡劫', () => app.openTribulation(), { disabled: !tr.canAttempt, cls: 'blue' }),
       h('div', { class: 'small' },
-        h('div', { text: `${tr?.name || '雷劫'} · ${tr?.rounds || '?'} 道天雷` }),
-        h('div', { class: 'muted', text: v.qi < bt.cost ? `需灵气 ${fmtNum(bt.cost)}` : '灵气已足，可择时渡劫' })));
+        h('div', { text: `${tr.name || '雷劫'} · ${tr.rounds || '?'} 道天雷${tr.lethal ? ' · 凶' : ''}${tr.isAscend ? ' · 登穹' : ''}` }),
+        h('div', { class: 'muted', text: tr.canAttempt ? `减伤 ${fmtPct(tr.resist)} · 预计雷伤 ${fmtNum(tr.expectedDmg)} / 气血 ${fmtNum(tr.hp)}` : `需灵气 ${fmtNum(bt.cost)}` })));
   } else {
     const b = sealButton('破关', () => {
       const r = game.breakthrough();

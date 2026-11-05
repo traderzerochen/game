@@ -31,3 +31,4 @@
 | D25 | 应用户要求，为 ui-art 增加 2 名队友：art-assets（Opus，剪影与正式图标）、audio（Sonnet，WebAudio）。按文件划分归属，ui-art 保留场景、特效、界面和集成 | 用户明确要求，覆盖最初「3 名队友不增加」的约束；按文件拆分可避免冲突 |
 | D26 | 应用户要求新增 qa 队友（Sonnet），负责 tests/e2e/ 下的 Playwright 端到端测试，入口为 `npm run test:e2e`（不并入 `npm test`，因为需要构建和浏览器） | 端到端测试慢、依赖浏览器，与单元测试分开；Sonnet 足以胜任脚本化测试 |
 | D27 | 音频：master 前加 DynamicsCompressor 防爆音；battle:end 以 winner==='player' 判胜，expedition:end 以 success 或 cleared 判胜 | audio 提议，lead 批准 |
+| D28 | 应用户要求为 engine 增加队友：只加 1 名只读审查员 engine-review（Sonnet），不加开发者 | engine 的计划任务已全部完成并通过测试，再加开发者没有活干；缺的是作者之外的独立验证。修复仍由 engine 完成，以保持单一归属 |

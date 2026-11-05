@@ -366,3 +366,24 @@ input[type="range"] { accent-color: var(--azurite); }
   .slip .mark { right: -6px; top: -6px; transform: none; }
   .panel-wrap { min-height: 60vh; }
 }
+
+/* ---------- 阶段 2：渡劫、炼丹、结局 ---------- */
+.trib-overlay {
+  position: absolute; left: 50%; top: 48px; transform: translateX(-50%);
+  width: min(360px, 80%); padding: 8px 14px 10px; z-index: 4;
+  background: rgba(29, 27, 25, .55); color: var(--paper); border: 1px solid rgba(243, 236, 220, .35); border-radius: 4px;
+  text-align: center; pointer-events: none;
+}
+.trib-overlay .trib-title { font-size: 22px; letter-spacing: 6px; }
+.trib-overlay .ink-bar { margin: 6px 0 4px; }
+.trib-overlay .ink-bar .lbl { color: var(--paper); mix-blend-mode: normal; }
+.trib-line { font-family: var(--font-kai); font-size: 17px; min-height: 1.6em; }
+.ending { text-align: left; }
+.ending-seal { text-align: center; margin: -4px 0 6px; }
+.ending-seal svg { display: inline-block; }
+.ending-ascend .ending-seal svg { filter: drop-shadow(0 0 8px var(--glow-gold)); }
+.furnace-box { display: flex; flex-direction: column; align-items: center; }
+.furnace-box canvas { width: 280px; height: 220px; }
+.furnace-result { min-height: 72px; text-align: center; font-family: var(--font-kai); font-size: 18px; }
+.furnace-result svg { width: 56px; height: 56px; display: block; margin: 0 auto 2px; }
+.furnace-result.q3 svg { filter: drop-shadow(0 0 10px var(--glow-gold)); }

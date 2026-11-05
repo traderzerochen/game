@@ -11,6 +11,9 @@ import { sealSVG } from '../art/seal.js';
 import { rootIcon } from '../art/icons.js';
 import { tier } from '../art/tiers.js';
 import { PAGES } from './pages/index.js';
+import { openTribulation } from './tribulation.js';
+import { showEnding as showEndingUI } from './ending.js';
+import { createAudio } from '../audio/index.js';
 
 const AUTOSAVE_MS = 30000;
 const UPDATE_MS = 250;
@@ -52,6 +55,7 @@ function boot() {
   const panelWrap = h('aside', { class: 'panel-wrap' }, els.scroll);
   root.append(topbar, nav, stageEl, panelWrap, logEl);
 
+  els.stageEl = stageEl;
   const app = {
     game, data, settings, els,
     page: null,
@@ -63,7 +67,22 @@ function boot() {
     refresh: scheduleRefresh,
     forceRefresh: () => renderPage(true),
     save: () => game.save(),
+    openTribulation: () => openTribulation(app),
+    showEnding: () => showEndingUI(app),
+    cinematic: false,
   };
+
+  // ---------- 音频：首次交互后解锁 ----------
+  try {
+    app.audio = createAudio({ bus: game.bus, getSettings: () => ({ volume: settings.volume, muted: settings.muted }) });
+  } catch (e) { console.warn('audio unavailable', e); app.audio = null; }
+  const unlock = () => { app.audio?.unlock?.(); };
+  window.addEventListener('pointerdown', unlock, { once: true, capture: true });
+  window.addEventListener('keydown', unlock, { once: true, capture: true });
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('button');
+    if (b && !b.disabled) app.audio?.play?.('click');
+  }, true);
 
   // ---------- 舞台与档位 ----------
   app.stage = createStage(stageEl, { getQuality: () => settings.quality });
@@ -163,21 +182,8 @@ function boot() {
     scheduleRefresh();
   });
   for (const ev of ['realm:changed', 'technique:changed', 'item:gained', 'load', 'pill:used', 'alchemy:done']) bus.on(ev, scheduleRefresh);
-  bus.on('ending', () => setTimeout(() => showEnding(), 400));
+  bus.on('ending', () => { if (!app.cinematic) setTimeout(() => app.showEnding(), 400); });
   bus.on('save', (e) => { if (!e.ok) toast('存档失败：浏览器存储不可用', 'bad'); });
-
-  function showEnding() {
-    const v = game.view();
-    if (!v.ending) return;
-    const ed = data.endings.find((x) => x.id === v.ending.id);
-    if (app.page?.id !== 'cultivate') go('cultivate');
-    openModal({
-      title: ed?.name || '终局',
-      dismissable: false,
-      body: h('div', {}, String(ed?.text || '').split('\n').map((t) => h('p', { text: t }))),
-      actions: [{ text: '转世重修', onclick: () => { const r = game.rebirth(); if (r.ok) { game.save(); toast('轮回一转，前尘如梦', 'rare'); renderPage(); } } }],
-    });
-  }
 
   // ---------- 启动流程 ----------
   const loaded = game.load();
@@ -195,7 +201,7 @@ function boot() {
         actions: [{ text: '知晓' }],
       });
     }
-    if (game.view().ending) setTimeout(showEnding, 300);
+    if (game.view().ending) setTimeout(() => app.showEnding(), 300);
   }
 
   function showIntro() {
@@ -243,7 +249,7 @@ function boot() {
     }
     const st = game.state;
     const cost = data.realm ? data.realm(st.stage).qiCost : 1;
-    app.stage.frame(dt, { qiRatio: Math.min(1, st.qi / (cost || 1)) });
+    app.stage.frame(dt, { qiRatio: Math.min(1, st.qi / (cost || 1)), cultivating: !st.ending });
     requestAnimationFrame(loop);
   }
   updateTop();

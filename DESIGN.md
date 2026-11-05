@@ -18,6 +18,7 @@
 | `src/ui/` `src/art/`（除下两行） `assets/` `styles/` `index.html` | ui-art | 界面、场景、特效、集成 |
 | `src/art/silhouette.js` `src/art/icons.js` | art-assets | 剪影与图标生成器（阶段 2 新增队友） |
 | `src/audio/` | audio | WebAudio 合成音效（阶段 2 新增队友） |
+| （只读） | engine-review | 独立审查 src/core、src/combat、src/save，问题交给 engine 修复 |
 | `tests/e2e/` | qa | 浏览器端到端测试（`npm run test:e2e`），只报告 bug、不改他人代码 |
 
 规则：
