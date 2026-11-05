@@ -24,7 +24,10 @@ export function placeholderIcon({ label, color, border, shape = 'rect', sub = ''
     ? `<defs><filter id="g${h}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter></defs>` +
       `<circle cx="32" cy="32" r="28" fill="${PALETTE.glowGold}" filter="url(#g${h})"/>`
     : '';
-  const subTxt = sub ? `<text x="54" y="58" font-size="13" text-anchor="end" fill="${PALETTE.paper}" font-family="${FONT}" stroke="${PALETTE.ink0}" stroke-width="0.6">${esc(sub)}</text>` : '';
+  const subTxt = sub
+    ? `<circle cx="52" cy="52" r="10" fill="${PALETTE.paper}" stroke="${PALETTE.ink0}" stroke-width="1.5"/>` +
+      `<text x="52" y="52.5" font-size="13" text-anchor="middle" dominant-baseline="central" fill="${PALETTE.ink0}" font-family="${FONT}">${esc(sub)}</text>`
+    : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${size}" height="${size}" class="icon">` +
     (title ? `<title>${esc(title)}</title>` : '') +
     glowDef +

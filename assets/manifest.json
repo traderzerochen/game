@@ -1,1 +1,18 @@
-{ "version": 1, "assets": [] }
+{
+  "version": 1,
+  "note": "全部素材为程序化生成（SVG / Canvas / WebAudio），无外部图片、字体或音频文件。",
+  "assets": [
+    { "id": "palette", "type": "procedural", "module": "src/art/palette.js", "source": "self-made", "license": "project" },
+    { "id": "noise.fbm", "type": "procedural", "module": "src/art/noise.js", "source": "self-made", "license": "project" },
+    { "id": "brush.stroke", "type": "procedural", "module": "src/art/brush.js", "source": "self-made", "license": "project" },
+    { "id": "icon.placeholder", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project", "note": "阶段 1 占位：元素色块 + 首字" },
+    { "id": "icon.technique", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
+    { "id": "icon.herb", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
+    { "id": "icon.pill", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
+    { "id": "icon.treasure", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
+    { "id": "icon.root", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
+    { "id": "icon.enemyPortrait", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
+    { "id": "seal", "type": "procedural", "module": "src/art/seal.js", "source": "self-made", "license": "project" },
+    { "id": "style.main", "type": "stylesheet", "module": "styles/main.css", "source": "self-made", "license": "project", "note": "宣纸纹理、卷轴、竹简、印章按钮、墨迹进度条均为纯 CSS" }
+  ]
+}

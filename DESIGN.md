@@ -528,3 +528,8 @@ game.save() / game.load() → bool / game.reset() / game.exportSave() / game.imp
 | 日期 | 变更 | 通知对象 |
 |---|---|---|
 | 初版 | lead 建立 | 全员 |
+| P1 | engine 实现差异：counters 增加 breakthroughFails；tribulations/tribulationFails 按「尝试/失败」计数 | lead |
+| P1 | ExpeditionReport 扩展：{ok,dungeonId,name,success,cleared,defeated,retreat,reason?,steps:[{index,kind,eventId,type('battle'\|'fortune'\|'trap'\|'gather'\|'boss'),name,text,passed,effects,gains:[{kind,id?,count}],hp,hpAfter,battle?}],stones,herbs,pills,treasures,techniques,clearReward,hpStart,hpEnd,maxHp,injured,gains}；battle 内含 playerMaxHp/enemyMaxHp/log/drops；boss 战超时 = retreat（不通关、不受伤、仍冷却） | ui-art |
+| P1 | canEnter 冷却中返回 {ok:false,reason:'cooldown',readyIn}；equipTechnique 的 slot 为 heart\|body\|skill；buy 的 kind 单复数均可 | ui-art |
+| P1 | 存档导出串前缀 'MLWD1:' + base64；deserialize 补全缺失字段，非有限数值抛 SaveError；rebirth() 仅在已有 ending 时可用 | ui-art |
+| P1 | 新增 game.tribulationInfo() → {name, rounds, resist, hp, expectedDmg, canAttempt}；runTribulation 战报 {ok,success,name,rounds:[{r,strike,dmg,hp,healed}],resist,maxHp,death,ending?} | ui-art |
