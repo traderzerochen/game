@@ -114,13 +114,16 @@ function boot() {
     els.scroll.classList.remove('unroll');
     void els.scroll.offsetWidth;
     els.scroll.classList.add('unroll');
-    renderPage(true);
+    renderPage(true, true);
     els.panel.scrollTop = 0;
   }
 
-  function renderPage(force = false) {
+  // 演出（渡劫 / 飞升）进行中：除切页外的刷新一律延后，待演出结束、卷轴弹出后再补刷（D32）
+  let deferredRender = false;
+  function renderPage(force = false, nav = false) {
     const p = app.page;
     if (!p) return;
+    if (app.cinematic && !nav) { deferredRender = true; return; }
     if (!force && p.busy && p.busy(app)) { p.update && p.update(app); return; }
     const top = els.panel.scrollTop;
     clear(els.panel);
@@ -242,6 +245,7 @@ function boot() {
     if (app.started) game.tick(Date.now());
     monitor.frame(dt);
     let v = null;
+    if (deferredRender && !app.cinematic) { deferredRender = false; renderPage(true); }
     if (now - lastUpdate >= UPDATE_MS && !app.cinematic) {
       lastUpdate = now;
       v = updateTop();

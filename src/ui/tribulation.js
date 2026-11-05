@@ -140,7 +140,6 @@ function play(app, rep) {
     delete app.els.stageEl.dataset.trib;
     if (rep.success && theme === 'dengqiong') stage.openGate(1);
     app.replaying = false;
-    app.cinematic = false;
     if (rep.success) {
       stage.gather();
       app.audio?.play('tribulation:success');
@@ -150,7 +149,9 @@ function play(app, rep) {
       ? (rep.ending ? '雷云尽散，天门洞开。' : `${tpl(data.texts.tribulation?.success || '你渡过了{name}。', { name: rep.name })}晋入${toRealm?.name || ''}。`)
       : rep.death ? '天雷贯顶……' : (data.texts.tribulation?.fail || '雷劫未渡，你身受重伤。');
     setTimeout(() => {
-      if (rep.ending) { app.showEnding(); return; }
+      // 结果卷轴（或结局卷轴）弹出的同一时刻才解除演出状态，修炼页随后补刷
+      app.cinematic = false;
+      if (rep.ending) { app.showEnding(); app.forceRefresh(); return; }
       stage.setScene('home');
       app.openModal({
         title: rep.success ? '渡劫功成' : '渡劫失败',
