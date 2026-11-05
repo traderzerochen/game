@@ -355,7 +355,7 @@ export function drawStars(ctx, { seed = 1, width, height, count = 120, color = '
     const r = rand() < 0.08 ? 1.4 + rand() : 0.4 + rand() * 0.8;
     ctx.fillStyle = withAlpha(color, 0.35 + rand() * 0.6);
     ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-    if (r > 1.4) { ctx.fillStyle = withAlpha(color, 0.12); ctx.beginPath(); ctx.arc(x, y, r * 4, 0, Math.PI * 2); ctx.fill(); }
+    if (r > 1.4) { ctx.fillStyle = withAlpha(color, 0.05); ctx.beginPath(); ctx.arc(x, y, r * 4, 0, Math.PI * 2); ctx.fill(); }
   }
   ctx.restore();
 }
@@ -366,18 +366,20 @@ export function drawCrater(ctx, x, y, w, { seed = 1, ink = PALETTE.ink1 } = {}) 
   const h = w * (0.18 + rand() * 0.06);
   ctx.save();
   const g = ctx.createRadialGradient(x, y, w * 0.05, x, y, w * 0.5);
-  g.addColorStop(0, withAlpha(ink, 0.75));
-  g.addColorStop(0.7, withAlpha(ink, 0.35));
+  g.addColorStop(0, withAlpha(ink, 0.6));
+  g.addColorStop(0.75, withAlpha(ink, 0.25));
   g.addColorStop(1, withAlpha(ink, 0));
   ctx.fillStyle = g;
-  ctx.beginPath(); ctx.ellipse(x, y, w * 0.5, h, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.save(); ctx.translate(x, y); ctx.scale(1, h / (w * 0.5));
+  ctx.beginPath(); ctx.arc(0, 0, w * 0.5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
   // 坑唇：上沿浓墨弧线 + 下沿淡笔
   const rim = [];
   for (let i = 0; i <= 12; i++) { const a = Math.PI + (i / 12) * Math.PI; rim.push([x + Math.cos(a) * w * 0.5 * (0.95 + rand() * 0.1), y + Math.sin(a) * h * (1 + rand() * 0.3)]); }
-  brushStroke(ctx, rim, { width: Math.max(1.5, w * 0.025), ink, dry: 0.5, seed, taper: 0.6 });
+  brushStroke(ctx, rim, { width: Math.max(1.2, w * 0.012), ink, dry: 0.6, seed, taper: 0.8, alpha: 0.8 });
   const lip = [];
   for (let i = 0; i <= 8; i++) { const a = (i / 8) * Math.PI; lip.push([x + Math.cos(a) * w * 0.48, y + Math.sin(a) * h * 0.9]); }
-  brushStroke(ctx, lip, { width: Math.max(1, w * 0.012), ink, dry: 0.7, seed: seed + 1, alpha: 0.45 });
+  brushStroke(ctx, lip, { width: Math.max(0.8, w * 0.006), ink: PALETTE.ink3, dry: 0.7, seed: seed + 1, alpha: 0.35 });
   ctx.restore();
 }
 

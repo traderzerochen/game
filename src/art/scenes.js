@@ -125,7 +125,7 @@ export const SCENES = {
       { kind: 'clouds', y: 0.58, thick: 0.05, speed: 0.15, minTier: 'mid', alpha: 0.35, color: '#8a90a0' },
       { kind: 'mountain', ink: '#2a2f39', y: 0.76, height: 0.1, peaks: 5, blur: 2, speed: 0.15, minTier: 'mid', sharp: 1.1, texture: 0.2 },
       { kind: 'static', minTier: 'low', items: [
-        { type: 'crater', x: 0.3, y: 0.86, size: 0.5 }, { type: 'crater', x: 0.78, y: 0.8, size: 0.32 },
+        { type: 'crater', x: 0.32, y: 0.88, size: 0.3 }, { type: 'crater', x: 0.72, y: 0.8, size: 0.18 },
         { type: 'stele', x: 0.16, y: 0.97, size: 0.34, tilt: -0.22 }, { type: 'stele', x: 0.88, y: 0.96, size: 0.26, tilt: 0.3 } ] },
       { kind: 'clouds', y: 0.97, thick: 0.05, speed: 0.6, minTier: 'high', alpha: 0.3, color: '#9aa0ae' },
     ],
