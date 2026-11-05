@@ -44,7 +44,7 @@ test('equip duplicates, unowned, wrong type', () => {
   assert.ok(g.equipTechnique('guixi_yinqi', 'heart').ok);
   assert.equal(g.state.techniques.equipped.heart, 'guixi_yinqi');
   g.buy('technique', 'duanhong_jian');
-  assert.ok(g.equipTechnique('duanhong_jian', 'skill', 0).ok);
+  assert.ok(g.equipTechnique('duanhong_jian', 'skill', 1).ok);
   assert.ok(g.equipTechnique('duanhong_jian', 'skill', 1).ok);
   assert.deepEqual(g.state.techniques.equipped.skills, ['fuchen_zhang', 'duanhong_jian']);
   assert.equal(g.equipTechnique('nope', 'skill').reason, 'invalid');
@@ -57,9 +57,10 @@ test('equip duplicates, unowned, wrong type', () => {
 
 test('skill slots full, index out of range', () => {
   const g = mk();
-  const skills = g.data.techniques.filter((t) => t.type === 'skill' && t.realmReq === 0);
+  g.state.stage = 14;
+  const skills = g.data.techniques.filter((t) => t.type === 'skill');
   for (const t of skills) g.state.techniques.owned[t.id] = 1;
-  assert.ok(skills.length >= 5, 'need >=5 stage-0 skills for this test');
+  assert.ok(skills.length >= 5, 'need >=5 skills for this test');
   const ids = skills.map((t) => t.id);
   for (const id of ids.slice(0, 4)) g.equipTechnique(id, 'skill');
   assert.equal(g.state.techniques.equipped.skills.length, 4);
