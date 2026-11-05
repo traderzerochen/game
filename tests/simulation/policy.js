@@ -187,11 +187,15 @@ export function playCharacter(game, data, { targetStage = 6, maxPlayed = 200 * 3
 
     const v = game.view();
     const b = v.breakthrough || {};
+    const tri = v.tribulation;
+    if (b.isMajor && tri && tri.canAttempt) {
+      usePills(game, data, { beforeMajor: true });
+      game.tribulation({ healPills: tribulationPills(game, data) });
+      onStep && onStep(game);
+      continue;
+    }
     if (b.canAttempt) {
-      if (b.isMajor) {
-        usePills(game, data, { beforeMajor: true });
-        game.tribulation({ healPills: tribulationPills(game, data) });
-      } else {
+      {
         usePills(game, data, { beforeMinor: true });
         game.breakthrough();
       }
