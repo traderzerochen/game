@@ -1,0 +1,19 @@
+{
+  "name": "minglan-wendao",
+  "private": true,
+  "version": "0.1.0",
+  "description": "《溟岚问道》单机网页版水墨修仙放置养成游戏",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "test:engine": "node --test \"tests/engine/**/*.test.js\"",
+    "test:data": "node --test \"tests/data/**/*.test.js\"",
+    "test:sim": "node --test \"tests/simulation/**/*.test.js\""
+  },
+  "devDependencies": {
+    "vite": "^6.4.5"
+  }
+}

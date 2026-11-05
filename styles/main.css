@@ -1,0 +1,4 @@
+/* 占位样式 —— ui-art 负责替换。色板见 ART_GUIDE.md §2 */
+:root { --paper: #f3ecdc; --ink-0: #1d1b19; }
+body { margin: 0; background: var(--paper); color: var(--ink-0);
+  font-family: "STKaiti","KaiTi","Kaiti SC","楷体","Noto Serif SC","Songti SC","SimSun",serif; }
