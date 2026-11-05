@@ -408,6 +408,7 @@ test('06 炼丹：材料足够炼制，不足时禁用，结果提示', async ()
     const pills1 = await ev(c, (a, g, s) => (s.inventory.pills.juling_dan || [0, 0, 0, 0]).reduce((x, y) => x + y, 0));
     const herb1 = await ev(c, (a, g, s) => s.inventory.herbs.ninglu_cao);
     check(herb1 === herb0 - 2, `炼制应消耗 2 凝露草：${herb0} -> ${herb1}`);
+    if (process.env.QA_DEBUG) console.log("craft", i, pills0, pills1, await toastText(c));
     if (pills1 > pills0) { ok++; await expectToast(c, /丹成/); } else { fail++; await expectToast(c, /炉火失控/); }
     await sleep(150);
   }

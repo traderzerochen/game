@@ -2,21 +2,282 @@
   "version": 1,
   "note": "全部素材为程序化生成（SVG / Canvas / WebAudio），无外部图片、字体或音频文件。",
   "assets": [
-    { "id": "palette", "type": "procedural", "module": "src/art/palette.js", "source": "self-made", "license": "project" },
-    { "id": "noise.fbm", "type": "procedural", "module": "src/art/noise.js", "source": "self-made", "license": "project" },
-    { "id": "brush.stroke", "type": "procedural", "module": "src/art/brush.js", "source": "self-made", "license": "project" },
-    { "id": "icon.placeholder", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project", "note": "阶段 1 占位：元素色块 + 首字" },
-    { "id": "icon.technique", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
-    { "id": "icon.herb", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
-    { "id": "icon.pill", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
-    { "id": "icon.treasure", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
-    { "id": "icon.root", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
-    { "id": "icon.enemyPortrait", "type": "procedural", "module": "src/art/icons.js", "source": "self-made", "license": "project" },
-    { "id": "seal", "type": "procedural", "module": "src/art/seal.js", "source": "self-made", "license": "project" },
-    { "id": "style.main", "type": "stylesheet", "module": "styles/main.css", "source": "self-made", "license": "project", "note": "宣纸纹理、卷轴、竹简、印章按钮、墨迹进度条均为纯 CSS" },
-    { "id": "audio.synth", "type": "procedural", "module": "src/audio/synth.js", "source": "self-made", "license": "project", "note": "WebAudio 噪声/混响冲激/音色原语" },
-    { "id": "audio.ambient", "type": "procedural", "module": "src/audio/ambient.js", "source": "self-made", "license": "project", "note": "古琴五声音阶随机旋律 + 风声，实时合成" },
-    { "id": "audio.sfx", "type": "procedural", "module": "src/audio/sfx.js", "source": "self-made", "license": "project", "note": "钟、雷、丹成、剑鸣、木鱼等音效，实时合成" },
-    { "id": "audio.index", "type": "procedural", "module": "src/audio/index.js", "source": "self-made", "license": "project" }
+    {
+      "id": "palette",
+      "type": "procedural",
+      "module": "src/art/palette.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "noise.fbm",
+      "type": "procedural",
+      "module": "src/art/noise.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "brush.stroke",
+      "type": "procedural",
+      "module": "src/art/brush.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "icon.placeholder",
+      "type": "procedural",
+      "module": "src/art/icons.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "阶段 1 占位：元素色块 + 首字"
+    },
+    {
+      "id": "icon.technique",
+      "type": "procedural",
+      "module": "src/art/icons.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "icon.herb",
+      "type": "procedural",
+      "module": "src/art/icons.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "icon.pill",
+      "type": "procedural",
+      "module": "src/art/icons.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "icon.treasure",
+      "type": "procedural",
+      "module": "src/art/icons.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "icon.root",
+      "type": "procedural",
+      "module": "src/art/icons.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "icon.enemyPortrait",
+      "type": "procedural",
+      "module": "src/art/icons.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "seal",
+      "type": "procedural",
+      "module": "src/art/seal.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "style.main",
+      "type": "stylesheet",
+      "module": "styles/main.css",
+      "source": "self-made",
+      "license": "project",
+      "note": "宣纸纹理、卷轴、竹简、印章按钮、墨迹进度条均为纯 CSS"
+    },
+    {
+      "id": "audio.synth",
+      "type": "procedural",
+      "module": "src/audio/synth.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "WebAudio 噪声/混响冲激/音色原语"
+    },
+    {
+      "id": "audio.ambient",
+      "type": "procedural",
+      "module": "src/audio/ambient.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "古琴五声音阶随机旋律 + 风声，实时合成"
+    },
+    {
+      "id": "audio.sfx",
+      "type": "procedural",
+      "module": "src/audio/sfx.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "钟、雷、丹成、剑鸣、木鱼等音效，实时合成"
+    },
+    {
+      "id": "audio.index",
+      "type": "procedural",
+      "module": "src/audio/index.js",
+      "source": "self-made",
+      "license": "project"
+    },
+    {
+      "id": "mountains.layer",
+      "type": "procedural",
+      "module": "src/art/mountains.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "周期 fbm 山脊 + 上浓下淡晕染 + 皴笔"
+    },
+    {
+      "id": "scenery.cloud",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "云海带"
+    },
+    {
+      "id": "scenery.pine",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "松"
+    },
+    {
+      "id": "scenery.rock",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "石"
+    },
+    {
+      "id": "scenery.bamboo",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "竹"
+    },
+    {
+      "id": "scenery.waterfall",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "飞瀑（逐帧水流）"
+    },
+    {
+      "id": "scenery.pavilion",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "殿阁/钟"
+    },
+    {
+      "id": "scenery.stalactites",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "冰棱钟乳"
+    },
+    {
+      "id": "scenery.water",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "水面"
+    },
+    {
+      "id": "scenery.deadTree",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "枯树"
+    },
+    {
+      "id": "scenery.furnace",
+      "type": "procedural",
+      "module": "src/art/scenery.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "三足丹炉"
+    },
+    {
+      "id": "scene.home",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "数据驱动场景定义，离屏预渲染多层视差"
+    },
+    {
+      "id": "scene.mist_valley",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "数据驱动场景定义，离屏预渲染多层视差"
+    },
+    {
+      "id": "scene.cold_cave",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "数据驱动场景定义，离屏预渲染多层视差"
+    },
+    {
+      "id": "scene.bell_hall",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "数据驱动场景定义，离屏预渲染多层视差"
+    },
+    {
+      "id": "scene.red_gorge",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "数据驱动场景定义，离屏预渲染多层视差"
+    },
+    {
+      "id": "scene.clear_spring",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "数据驱动场景定义，离屏预渲染多层视差"
+    },
+    {
+      "id": "scene.tribulation",
+      "type": "procedural",
+      "module": "src/art/scenes.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "数据驱动场景定义，离屏预渲染多层视差"
+    },
+    {
+      "id": "fx.particles",
+      "type": "procedural",
+      "module": "src/art/fx.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "灵气汇聚/剑光拖尾/法术爆发/雷劫闪电+墨晕/治疗光环"
+    },
+    {
+      "id": "fx.tiers",
+      "type": "procedural",
+      "module": "src/art/tiers.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "low/mid/high 特效档位"
+    }
   ]
 }

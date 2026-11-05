@@ -27,7 +27,6 @@ export function showEnding(app) {
   const c = st.counters || {};
   if (id === 'ascend') { stage.flash(0.8, '255,236,180'); stage.gather(); }
   else if (id === 'fallen') stage.flash(0.6, '29,27,25');
-  app.audio?.play('ending');
   const next = previewLegacy(v.legacy || {}, id);
   const heart = data.byId.techniques.get(st.techniques.equipped.heart);
   const body = h('div', { class: `ending ending-${id}` },

@@ -127,7 +127,7 @@ function play(app, rep) {
     if (rep.success) {
       stage.gather();
       app.audio?.play('tribulation:success');
-    }
+    } else app.audio?.play('tribulation:fail');
     const toRealm = data.realm ? data.realm(rep.to) : data.realms[rep.to];
     const text = rep.success
       ? (rep.ending ? '雷云尽散，天门洞开。' : `${tpl(data.texts.tribulation?.success || '你渡过了{name}。', { name: rep.name })}晋入${toRealm?.name || ''}。`)

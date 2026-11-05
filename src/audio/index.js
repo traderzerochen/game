@@ -64,21 +64,12 @@ export function createAudio({ bus, getSettings } = {}) {
   function setVolume(v) { curVol = Math.max(0, Math.min(1, Number(v) || 0)); applyGain(); }
   function setMuted(b) { curMuted = !!b; applyGain(); }
 
-  function onTribEnd(rep) {
-    const rounds = Array.isArray(rep?.rounds) ? rep.rounds.length : (Number(rep?.rounds) || 0);
-    for (let i = 0; i < rounds; i++) later(i * 900, () => play('thunder', { big: 0.8 + Math.random() * 0.4 }));
-    if (rep?.success) later(rounds * 900 + 700, () => play('tribulation:success'));
-  }
-
   if (bus?.on) {
     const sub = (n, f) => { const off = bus.on(n, f); if (typeof off === 'function') offs.push(off); };
     sub('breakthrough', (p) => play(p?.success ? 'breakthrough:success' : 'breakthrough:fail'));
-    sub('tribulation:start', () => play('tribulation:start'));
-    sub('tribulation:end', onTribEnd);
-    sub('battle:end', (p) => play(p?.winner === 'player' || p?.winner === 'me' || p?.winner === true ? 'battle:win' : 'battle:lose'));
-    sub('expedition:end', (p) => play(p?.success || p?.cleared ? 'battle:win' : 'battle:lose'));
     sub('alchemy:done', (p) => play(p?.success ? 'alchemy:success' : 'alchemy:fail'));
-    sub('item:gained', () => play('item'));
+    let lastItem = 0;
+    sub('item:gained', () => { const n = Date.now(); if (n - lastItem > 300) { lastItem = n; play('item'); } });
     sub('ending', () => play('ending'));
   }
 

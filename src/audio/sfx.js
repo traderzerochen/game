@@ -30,6 +30,7 @@ export const SFX = {
   },
   thunder: (c, d, nb, t, o = {}) => thunder(c, d, nb, t, o.big || 1),
   'tribulation:success': (c, d, nb, t) => arpeggio(c, d, nb, t, [0, 2, 4, 5, 7, 9], 0.16, 0.16),
+  'tribulation:fail': (c, d, nb, t) => { thud(c, d, nb, t); motif(c, d, nb, t + 0.1, [4, 2, 0], 0.35, 0.1); },
   'battle:win': (c, d, nb, t) => motif(c, d, nb, t, [2, 4, 5, 7]),
   'battle:lose': (c, d, nb, t) => motif(c, d, nb, t, [5, 3, 2, 0], 0.3, 0.12),
   'alchemy:success': (c, d, nb, t) => {

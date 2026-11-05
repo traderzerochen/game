@@ -125,13 +125,14 @@ function apply(item, quiet = false) {
       R.lines.push({ cls: ev.crit ? 'crit' : ev.heal ? 'heal' : '', text: evText(ev, item.ename) });
       if (!quiet) {
         R.app.stage.strike(ev, R.playerEl);
-        if (ev.crit) R.app.audio?.play('sword');
+        if (ev.crit || (ev.actor === 'player' && ev.action === 'skill')) R.app.audio?.play('sword');
       }
       return EV_MS;
     }
     case 'battleEnd':
       R.lines.push({ cls: item.cls, text: item.text });
       if (R.fighter) R.fighter.hit = null;
+      if (!quiet) R.app.audio?.play(item.winner === 'player' ? 'battle:win' : 'battle:lose');
       setTimeout(() => { if (replay === R && !R.done) R.app.stage.setEnemy(null); }, 500);
       return STEP_MS * 0.7;
     case 'hp': R.hp = item.hp; return 0;
