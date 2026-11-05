@@ -361,6 +361,30 @@
       "source": "self-made",
       "license": "project",
       "note": "silhouetteSVG：同一造型的 SVG 版（viewBox 0 0 128 160）"
+    },
+    {
+      "id": "silhouette.wraith",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "variant: demon（心魔影）/ mist（云海祟）"
+    },
+    {
+      "id": "silhouette.jiao",
+      "type": "procedural",
+      "module": "src/art/silhouette.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "星陨古蛟"
+    },
+    {
+      "id": "icon.stone",
+      "type": "procedural",
+      "module": "src/art/icons.js",
+      "source": "self-made",
+      "license": "project",
+      "note": "stoneIcon：灵石 / 折价灵石（variant dup）"
     }
   ]
 }

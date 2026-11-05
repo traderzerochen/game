@@ -584,3 +584,38 @@ export function enemyPortrait(enemy, opts = {}) {
   }
   return I.svg({ title: enemy.name, ...opts });
 }
+
+// ---------------------------------------------------------------- 灵石：石青棱晶簇；dup = 折价灵石（叠朱砂「折」印）
+
+/**
+ * @param {{size?:number, variant?:'stone'|'dup', title?:string}} opts
+ */
+export function stoneIcon(opts = {}) {
+  const { variant = 'stone' } = opts;
+  const dup = variant === 'dup';
+  const I = new Icon(`stone:${variant}`);
+  const base = dup ? mix(P.azurite, P.ink3, 0.45) : P.azurite;
+  I.wash();
+  I.glow(dup ? withAlpha(P.ink3, 1) : P.glowCyan, 26, dup ? 0.3 : 0.6, 32, 34);
+  I.add(`<ellipse cx="32" cy="55" rx="18" ry="3.5" fill="${I.radial([[0, P.ink1, 0.45], [1, P.ink1, 0]])}"/>`);
+  // 棱晶：中柱高、两侧斜出；每根一明一暗两面
+  const prism = (cx, by, w, h, tilt) => {
+    const t = (x, y) => [n1(cx + (x - cx) * Math.cos(tilt) - (y - by) * Math.sin(tilt)), n1(by + (x - cx) * Math.sin(tilt) + (y - by) * Math.cos(tilt))];
+    const L = t(cx - w / 2, by), R = t(cx + w / 2, by), M = t(cx + w * 0.1, by + 1.5);
+    const TL = t(cx - w / 2, by - h), TR = t(cx + w / 2, by - h), TM = t(cx + w * 0.1, by - h + 1), TIP = t(cx, by - h - w * 0.8);
+    const poly = (pts, fill) => I.add(`<path d="M${pts.map((p) => p.join(' ')).join('L')}Z" fill="${fill}" stroke="${P.ink0}" stroke-width="1.2" stroke-linejoin="round"/>`);
+    poly([L, M, TM, TIP, TL], mix(base, P.paper, 0.35));
+    poly([M, R, TR, TIP, TM], mix(base, P.ink0, 0.2));
+    I.line([t(cx - w * 0.25, by - 3), t(cx - w * 0.25, by - h + 2)], { w: 0.8, c: P.paper, a: 0.75, amp: 0.1 });
+  };
+  prism(21, 54, 9, 14, -0.42);
+  prism(43, 54, 9, 16, 0.38);
+  prism(32, 55, 12, 26, 0);
+  if (dup) {
+    I.add(`<g transform="rotate(-10 47 47)"><rect x="38" y="38" width="18" height="18" rx="1.5" fill="${P.cinnabar}" stroke="${P.paper}" stroke-width="1.2"/></g>`);
+    I.text('折', 47, 47.5, 12, P.paper, ' font-weight="bold"');
+  } else {
+    I.spark(14, 18, 2.8, P.paper); I.spark(50, 14, 2.2, P.paper);
+  }
+  return I.svg({ title: dup ? '折价灵石' : '灵石', ...opts });
+}
