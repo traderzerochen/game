@@ -1,7 +1,21 @@
-// 丹方 —— 阶段 1 最小集。
+// 丹方 —— 每种丹药至少一个丹方。
 export const recipes = [
   { id: 'r_juling_dan', pillId: 'juling_dan', name: '聚灵丹方', tier: 1, realmReq: 0, baseRate: 0.75, stones: 5,
     herbs: [{ herbId: 'ninglu_cao', count: 2 }, { herbId: 'qingsui_gen', count: 1 }], yield: 1 },
   { id: 'r_huichun_dan', pillId: 'huichun_dan', name: '回春丹方', tier: 1, realmReq: 0, baseRate: 0.7, stones: 5,
     herbs: [{ herbId: 'qingsui_gen', count: 1 }, { herbId: 'chiwen_zhi', count: 1 }], yield: 2 },
+  { id: 'r_ningshen_dan', pillId: 'ningshen_dan', name: '凝神丹方', tier: 1, realmReq: 0, baseRate: 0.7, stones: 8,
+    herbs: [{ herbId: 'ninglu_cao', count: 2 }, { herbId: 'shuangxin_lan', count: 1 }], yield: 1 },
+  { id: 'r_peiyuan_dan', pillId: 'peiyuan_dan', name: '培元丹方', tier: 2, realmReq: 1, baseRate: 0.7, stones: 12,
+    herbs: [{ herbId: 'chiwen_zhi', count: 2 }, { herbId: 'shitai_ru', count: 1 }, { herbId: 'ninglu_cao', count: 1 }], yield: 1 },
+  { id: 'r_pozhang_dan', pillId: 'pozhang_dan', name: '破障丹方', tier: 2, realmReq: 1, baseRate: 0.65, stones: 20,
+    herbs: [{ herbId: 'yumai_ye', count: 1 }, { herbId: 'huangjing_teng', count: 1 }, { herbId: 'qingsui_gen', count: 1 }], yield: 1 },
+  { id: 'r_juling_dan_zi', pillId: 'juling_dan', name: '紫晶聚灵方', tier: 2, realmReq: 2, baseRate: 0.7, stones: 15,
+    herbs: [{ herbId: 'zijing_guo', count: 2 }, { herbId: 'ninglu_cao', count: 1 }], yield: 2 },
+  { id: 'r_humai_dan', pillId: 'humai_dan', name: '护脉丹方', tier: 2, realmReq: 2, baseRate: 0.6, stones: 30,
+    herbs: [{ herbId: 'shitai_ru', count: 2 }, { herbId: 'huangjing_teng', count: 1 }, { herbId: 'shuangxin_lan', count: 1 }], yield: 1 },
+  { id: 'r_zhuji_dan', pillId: 'zhuji_dan', name: '固基丹方', tier: 3, realmReq: 3, baseRate: 0.5, stones: 120,
+    herbs: [{ herbId: 'xuerui_lian', count: 1 }, { herbId: 'longlin_tai', count: 1 }, { herbId: 'huangjing_teng', count: 2 }, { herbId: 'zijing_guo', count: 1 }], yield: 1 },
+  { id: 'r_yanshou_dan', pillId: 'yanshou_dan', name: '延寿丹方', tier: 4, realmReq: 6, baseRate: 0.4, stones: 500,
+    herbs: [{ herbId: 'mengxun', count: 1 }, { herbId: 'longlin_tai', count: 1 }, { herbId: 'xuerui_lian', count: 1 }, { herbId: 'zijing_guo', count: 2 }], yield: 1 },
 ];

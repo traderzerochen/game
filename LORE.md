@@ -111,6 +111,8 @@
 | yanshou_dan | 延寿丹 | 增加寿元 |
 | zhuji_dan | 固基丹 | 大幅减免渡劫雷伤（高阶） |
 
+丹方另有「紫晶聚灵方」（r_juling_dan_zi）。事件名称以 src/data/events.js 为准，均为原创。
+
 品质分四档：下品、中品、上品、极品（q0–q3）。
 
 ## 7. 秘境
@@ -141,6 +143,10 @@
 | yanlin_shou | 炎鳞兽 | fire | 赤砂火峡首领 |
 | teng_yao | 缠藤妖 | wood | 澄泉秘境 |
 | yuandi_gushou | 渊底古兽 | water | 澄泉秘境首领 |
+| hanya_bianfu | 寒洞蝠 | water | 寒漪古洞 |
+| zhonglou_jiankui | 钟楼剑傀 | metal | 沉钟古殿 |
+| chisha_xie | 赤砂蝎 | earth | 赤砂火峡 |
+| qingtan_yuan | 青潭鼋 | water | 澄泉秘境 |
 
 ## 9. 法宝
 

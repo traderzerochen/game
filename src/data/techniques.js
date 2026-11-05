@@ -1,4 +1,5 @@
-// 功法 —— 阶段 1 最小集（lead 骨架），content 扩展至 ≥10。字段见 DESIGN.md §4。
+// 功法 —— 15 部，名称见 LORE.md §4。字段见 DESIGN.md §4。
+// 心法 qiRate 控制修炼节奏：前期 0.2–0.4，金丹后 0.55+。
 export const techniques = [
   { id: 'guixi_yinqi', name: '归息引气篇', type: 'heart', element: 'none', rarity: 1, realmReq: 0, price: 0, maxLevel: 10, upgradeCost: 30,
     desc: '闻钟子所遗残篇，教人随潮汐呼吸，引岚气入体。', effect: { qiRate: 0.2, qiRatePerLv: 0.05 } },
@@ -6,4 +7,28 @@ export const techniques = [
     desc: '掌风如拂尘，聊胜于赤手。', effect: { kind: 'damage', power: 1.3, powerPerLv: 0.08, mpCost: 8 } },
   { id: 'duanhong_jian', name: '断鸿剑意', type: 'skill', element: 'metal', rarity: 2, realmReq: 0, price: 120, maxLevel: 10, upgradeCost: 40,
     desc: '一剑既出，如孤鸿断影。', effect: { kind: 'damage', power: 1.8, powerPerLv: 0.1, mpCost: 15 } },
+  { id: 'qingteng_chansi', name: '青藤缠丝手', type: 'skill', element: 'wood', rarity: 2, realmReq: 1, price: 160, maxLevel: 10, upgradeCost: 45,
+    desc: '青藤绕指，缠敌如缚，借其精气自养。', effect: { kind: 'drain', power: 1.5, powerPerLv: 0.09, mpCost: 20 } },
+  { id: 'liuyun_bu', name: '流云步', type: 'body', element: 'none', rarity: 2, realmReq: 1, price: 400, maxLevel: 10, upgradeCost: 60,
+    desc: '足下生云，身随风转，雾中亦不迷路。', effect: { stats: { spd: 0.15, def: 0.05 } } },
+  { id: 'ruijin_cuifeng', name: '锐金淬锋诀', type: 'heart', element: 'metal', rarity: 2, realmReq: 1, price: 300, maxLevel: 10, upgradeCost: 60,
+    desc: '以金气淬炼经脉，吐纳间隐有剑鸣。', effect: { qiRate: 0.3, qiRatePerLv: 0.035, stats: { atk: 0.03 } } },
+  { id: 'qixia_tuna', name: '栖霞吐纳篇', type: 'heart', element: 'wood', rarity: 2, realmReq: 1, price: 300, maxLevel: 10, upgradeCost: 60,
+    desc: '晨采霞气，暮纳林风，生机绵长。', effect: { qiRate: 0.3, qiRatePerLv: 0.035, stats: { hp: 0.04 } } },
+  { id: 'panshi_budong', name: '磐石不动身', type: 'skill', element: 'earth', rarity: 2, realmReq: 2, price: 500, maxLevel: 10, upgradeCost: 70,
+    desc: '气沉丹田，凝如磐石，凡力难撼。', effect: { kind: 'shield', power: 1.2, powerPerLv: 0.06, mpCost: 30 } },
+  { id: 'hanyi_ningbing', name: '寒漪凝冰诀', type: 'skill', element: 'water', rarity: 3, realmReq: 2, price: 600, maxLevel: 10, upgradeCost: 80,
+    desc: '指尖点水成漪，漪过处凝冰成刃。', effect: { kind: 'damage', power: 2.2, powerPerLv: 0.12, mpCost: 30 } },
+  { id: 'muchun_huisheng', name: '沐春回生诀', type: 'skill', element: 'wood', rarity: 3, realmReq: 2, price: 700, maxLevel: 10, upgradeCost: 80,
+    desc: '如春雨润物，枯骨生肌，伤势渐平。', effect: { kind: 'heal', power: 1.0, powerPerLv: 0.06, mpCost: 32 } },
+  { id: 'chiyu_fentian', name: '赤羽焚天印', type: 'skill', element: 'fire', rarity: 3, realmReq: 3, price: 1100, maxLevel: 10, upgradeCost: 110,
+    desc: '结印如羽，焰起如潮，一印可焚林海。', effect: { kind: 'damage', power: 2.6, powerPerLv: 0.14, mpCost: 40 } },
+  { id: 'chengxin_guanshui', name: '澄心观水经', type: 'heart', element: 'water', rarity: 3, realmReq: 3, price: 1200, maxLevel: 10, upgradeCost: 120,
+    desc: '观水悟静，心澄如镜，灵气随水纹而生。', effect: { qiRate: 0.4, qiRatePerLv: 0.04, stats: { mp: 0.06 } } },
+  { id: 'liyan_lianxin', name: '离焰炼心诀', type: 'heart', element: 'fire', rarity: 3, realmReq: 3, price: 1200, maxLevel: 10, upgradeCost: 120,
+    desc: '以离火炼心，焚尽杂念，进境迅猛而躁。', effect: { qiRate: 0.4, qiRatePerLv: 0.04, stats: { atk: 0.04 } } },
+  { id: 'houkun_zhenyue', name: '厚坤镇岳功', type: 'body', element: 'earth', rarity: 3, realmReq: 3, price: 1500, maxLevel: 10, upgradeCost: 130,
+    desc: '身如负岳，厚土载物，筋骨坚逾金石。', effect: { stats: { hp: 0.12, def: 0.12 } } },
+  { id: 'wuqi_guiyuan', name: '五气归元篇', type: 'heart', element: 'none', rarity: 4, realmReq: 6, price: 6000, maxLevel: 10, upgradeCost: 300,
+    desc: '五行之气归于一元，不择根骨，大道至简。', effect: { qiRate: 0.55, qiRatePerLv: 0.025, stats: { hp: 0.05, mp: 0.05 } } },
 ];

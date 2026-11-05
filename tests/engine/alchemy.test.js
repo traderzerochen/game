@@ -26,7 +26,7 @@ test('usePill effects', () => {
   const before = g.state.qi;
   const r = g.usePill('juling_dan', 3);
   assert.ok(r.ok);
-  assert.ok(Math.abs(g.state.qi - before - 0.15 * 2 * 600) < 1e-6);
+  assert.ok(Math.abs(g.state.qi - before - 0.15 * 2 * g.view().realm.qiCost) < 1e-6);
   assert.equal(g.state.counters.pillUsed.juling_dan, 1);
   assert.equal(g.usePill('huichun_dan', 0).reason, 'not_owned');
   g.state.inventory.pills.huichun_dan = [1, 0, 0, 0];

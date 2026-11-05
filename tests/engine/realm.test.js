@@ -5,7 +5,7 @@ import { mk } from './helpers.js';
 test('breakthrough needs qi; success advances stage', () => {
   const g = mk();
   assert.equal(g.breakthrough().reason, 'not_enough_qi');
-  g.state.qi = 600;
+  g.state.qi = g.view().realm.qiCost;
   g.state.legacy.breakBonus = 1;
   const r = g.breakthrough();
   assert.ok(r.ok && r.success);
@@ -21,9 +21,9 @@ test('major gate needs tribulation, chance clamped', () => {
 });
 test('failure costs 30% and clears bonus', () => {
   const g = mk();
-  g.state.qi = 1000; g.state.pending.breakthroughBonus = -5;
+  const c = g.view().realm.qiCost; g.state.qi = c * 2; g.state.pending.breakthroughBonus = -5;
   const r = g.breakthrough();
   assert.equal(r.success, false);
-  assert.ok(Math.abs(g.state.qi - 820) < 1e-9);
+  assert.ok(Math.abs(g.state.qi - (c * 2 - 0.3 * c)) < 1e-6);
   assert.equal(g.state.pending.breakthroughBonus, 0);
 });

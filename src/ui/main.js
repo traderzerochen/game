@@ -61,7 +61,7 @@ function boot() {
     openModal,
     go,
     refresh: scheduleRefresh,
-    forceRefresh: () => renderPage(),
+    forceRefresh: () => renderPage(true),
     save: () => game.save(),
   };
 
@@ -95,14 +95,14 @@ function boot() {
     els.scroll.classList.remove('unroll');
     void els.scroll.offsetWidth;
     els.scroll.classList.add('unroll');
-    renderPage();
+    renderPage(true);
     els.panel.scrollTop = 0;
   }
 
-  function renderPage() {
+  function renderPage(force = false) {
     const p = app.page;
     if (!p) return;
-    if (p.busy && p.busy(app)) { p.update && p.update(app); return; }
+    if (!force && p.busy && p.busy(app)) { p.update && p.update(app); return; }
     const top = els.panel.scrollTop;
     clear(els.panel);
     els.panel.appendChild(h('div', { class: 'scroll-title' }, p.title || p.name));
@@ -136,7 +136,7 @@ function boot() {
     // 日志
     const log = game.state.log || [];
     const last = log[log.length - 1];
-    if (last !== lastLogRef || log.length !== lastLogLen) {
+    if (!app.replaying && (last !== lastLogRef || log.length !== lastLogLen)) {
       lastLogRef = last; lastLogLen = log.length;
       renderLog(log);
     }
@@ -210,7 +210,7 @@ function boot() {
       body: h('div', {},
         (data.texts.intro || []).map((t) => h('p', { text: t })),
         h('div', { class: 'intro-roots', html: v.roots.map((r) => rootIcon(r, { size: 56 })).join('') }),
-        h('p', { class: 'noindent', style: { textAlign: 'center' } }, h('b', { class: 'kai', text: v.rootTier?.name || '' }), ' · ', data.texts.rootDesc?.[tierN] || ''),
+        h('p', { class: 'noindent', style: { textAlign: 'center' } }, data.texts.rootDesc?.[tierN] || v.rootTier?.name || ''),
         h('p', { class: 'noindent row', style: { justifyContent: 'center' } }, '道号：', nameInput)),
       actions: [{
         text: '踏上仙途',

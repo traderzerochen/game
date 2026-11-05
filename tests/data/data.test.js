@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import DATA from '../../src/data/index.js';
 
 // 阶段 2 完成后把 PHASE 改为 2，启用完整数量要求（DESIGN §4）。
-const PHASE = 1;
+const PHASE = 2;
 const MIN = PHASE >= 2
   ? { techniques: 10, herbs: 12, pills: 6, dungeons: 5, enemies: 8, poolEvents: 4 }
   : { techniques: 3, herbs: 4, pills: 2, dungeons: 1, enemies: 3, poolEvents: 4 };
@@ -172,4 +172,27 @@ test('最低数量', () => {
   for (const k of ['techniques', 'herbs', 'pills', 'dungeons', 'enemies']) {
     assert.ok(DATA[k].length >= MIN[k], `${k} >= ${MIN[k]}`);
   }
+});
+
+test('内容完整性：获取途径、丹方、药材', () => {
+  assert.equal(DATA.herbs.length, 12);
+  assert.equal(DATA.pills.length, 8);
+  assert.equal(DATA.techniques.length, 15);
+  assert.equal(DATA.treasures.length, 7);
+  for (const h of DATA.herbs) if (h.garden) assert.ok(h.rarity <= 2, h.id);
+  const shopT = new Set(DATA.shop.techniques.map((x) => x.id));
+  const shopR = new Set(DATA.shop.treasures.map((x) => x.id));
+  for (const t of DATA.techniques) if (t.price > 0) assert.ok(shopT.has(t.id), `${t.id} 无获取途径`);
+  for (const t of DATA.treasures) assert.ok(shopR.has(t.id), `${t.id} 无获取途径`);
+  for (const p of DATA.pills) assert.ok(DATA.recipes.some((r) => r.pillId === p.id), `${p.id} 无丹方`);
+  // 药材来源：药园 / 坊市 / 秘境事件 / 敌人掉落 / 通关奖励
+  const src = new Set(DATA.herbs.filter((h) => h.garden).map((h) => h.id));
+  DATA.shop.herbs.forEach((h) => src.add(h.id));
+  DATA.enemies.forEach((e) => (e.drops.herbs || []).forEach((h) => src.add(h.herbId)));
+  DATA.events.forEach((ev) => ev.effects.forEach((e) => { if (e.herbId) src.add(e.herbId); (e.pool || []).forEach((x) => src.add(x)); }));
+  for (const h of DATA.herbs) assert.ok(src.has(h.id), `${h.id} 无来源`);
+  // 关卡数据：玩家最高境界要求递增，且全部坊市物品境界不超过 8
+  assert.ok(DATA.dungeons.every((d) => d.cooldown >= 90 && d.cooldown <= 300));
+  assert.ok(DATA.enemies.length >= 12);
+  for (const d of DATA.dungeons) assert.ok(d.eventPool.length >= 6, d.id);
 });
