@@ -1,5 +1,6 @@
 // 存档：序列化、校验、迁移、导入导出 —— DESIGN §6.2
 import { emptyLegacy, emptyCounters } from '../core/state.js';
+import { MAX_SKILL_SLOTS } from '../core/constants.js';
 
 export const SAVE_KEY = 'minglan_save_v1';
 export const SAVE_VERSION = 1;
@@ -50,20 +51,33 @@ export function normalize(s) {
   const t = st.techniques;
   t.owned = isObj(t.owned) ? t.owned : {};
   t.equipped = { heart: null, body: null, skills: [], ...(isObj(t.equipped) ? t.equipped : {}) };
-  if (!Array.isArray(t.equipped.skills)) t.equipped.skills = [];
+  t.equipped.skills = (Array.isArray(t.equipped.skills) ? t.equipped.skills : [])
+    .filter((x, i, a) => typeof x === 'string' && a.indexOf(x) === i).slice(0, MAX_SKILL_SLOTS);
+  for (const k of Object.keys(t.owned)) t.owned[k] = Math.max(1, Math.floor(fin(t.owned[k], 1)));
   const inv = st.inventory;
   inv.stones = Math.max(0, fin(inv.stones));
-  inv.herbs = isObj(inv.herbs) ? inv.herbs : {};
-  inv.pills = isObj(inv.pills) ? inv.pills : {};
-  inv.treasures = Array.isArray(inv.treasures) ? inv.treasures : [];
+  inv.stones = Math.floor(inv.stones);
+  const herbs = {};
+  for (const [k, v] of Object.entries(isObj(inv.herbs) ? inv.herbs : {})) herbs[k] = Math.max(0, Math.floor(fin(v)));
+  inv.herbs = herbs;
+  const pills = {};
+  for (const [k, v] of Object.entries(isObj(inv.pills) ? inv.pills : {})) {
+    pills[k] = Array.isArray(v) && v.length === 4 ? v.map((x) => Math.max(0, Math.floor(fin(x)))) : [0, 0, 0, 0];
+  }
+  inv.pills = pills;
+  inv.treasures = (Array.isArray(inv.treasures) ? inv.treasures : []).filter((x) => typeof x === 'string');
   st.treasures = { weapon: null, armor: null, charm: null, ...(isObj(st.treasures) ? st.treasures : {}) };
   st.alchemy = { level: 1, xp: 0, ...(isObj(st.alchemy) ? st.alchemy : {}) };
-  st.buffs = Array.isArray(st.buffs) ? st.buffs : [];
+  st.buffs = (Array.isArray(st.buffs) ? st.buffs : [])
+    .filter((b) => isObj(b) && typeof b.type === 'string' && Number.isFinite(b.value) && Number.isFinite(b.until))
+    .map((b) => ({ type: b.type, value: b.value, until: b.until }));
   st.pending = { breakthroughBonus: 0, tribulationResist: 0, ...(isObj(st.pending) ? st.pending : {}) };
   st.injury = { until: 0, ...(isObj(st.injury) ? st.injury : {}) };
   st.expeditions = { readyAt: {}, cleared: {}, ...(isObj(st.expeditions) ? st.expeditions : {}) };
   st.garden = { acc: 0, pending: 0, ...(isObj(st.garden) ? st.garden : {}) };
   st.battleConfig = { pillRules: [], ...(isObj(st.battleConfig) ? st.battleConfig : {}) };
+  st.battleConfig.pillRules = (Array.isArray(st.battleConfig.pillRules) ? st.battleConfig.pillRules : [])
+    .filter((r) => isObj(r) && typeof r.pillId === 'string' && Number.isFinite(r.below));
   st.ending = isObj(st.ending) ? st.ending : null;
   st.legacy = { ...emptyLegacy(), ...(isObj(st.legacy) ? st.legacy : {}) };
   const c = { ...emptyCounters(), ...(isObj(st.counters) ? st.counters : {}) };

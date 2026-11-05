@@ -114,3 +114,83 @@ test('tribulation with missing heal pills', () => {
   assert.deepEqual(g.state.inventory.pills, {});
   assert.equal(g.tribulation({ healPills: 'bad' }).ok === false || true, true);
 });
+
+// ---- engine-review 回归 ----
+import { deserialize, serialize } from '../../src/save/save.js';
+import { DATA } from './helpers.js';
+
+test('regression: hostile save data cannot break advance/expedition', () => {
+  const g = mk(3);
+  const raw = JSON.parse(serialize(g.state));
+  raw.state.buffs = [null, 5, { type: 'qiRate', value: 'x', until: 1 }, { type: 'qiRate', value: 0.1, until: 1e9 }];
+  raw.state.inventory.pills = { huichun_dan: 'abc', juling_dan: [1, -2, 'x', 3.7, 9] };
+  raw.state.inventory.herbs = { ninglu_cao: -5, qingsui_gen: 2.9 };
+  raw.state.techniques.equipped.skills = ['fuchen_zhang', 'fuchen_zhang', 1, 'a', 'b', 'c', 'd'];
+  const h = mk(4);
+  assert.ok(h.importSave('MLWD1:' + Buffer.from(JSON.stringify(raw)).toString('base64')).ok);
+  assert.equal(h.state.buffs.length, 1);
+  assert.deepEqual(h.state.inventory.pills.huichun_dan, [0, 0, 0, 0]);
+  assert.equal(h.state.inventory.pills.juling_dan.length, 4);
+  assert.ok(h.state.inventory.pills.juling_dan.every((x) => Number.isInteger(x) && x >= 0));
+  assert.equal(h.state.inventory.herbs.ninglu_cao, 0);
+  assert.equal(h.state.inventory.herbs.qingsui_gen, 2);
+  assert.ok(h.state.techniques.equipped.skills.length <= 4);
+  assert.equal(h.advance(10).ok, true);
+  assert.equal(h.tick(1).ok, true);
+  assert.notEqual(h.startExpedition('wuqi_gu').reason, 'invalid');
+});
+
+test('regression: craft clamps alchemy level', () => {
+  const g = mk(2);
+  g.state.alchemy.level = 500;
+  g.state.inventory.herbs = { ninglu_cao: 5000, qingsui_gen: 5000 };
+  g.state.inventory.stones = 1e6;
+  const qs = [0, 0, 0, 0];
+  for (let i = 0; i < 2000; i++) { const r = g.craft('r_juling_dan'); if (r.success) qs[r.quality]++; }
+  const tot = qs.reduce((a, b) => a + b, 0);
+  // L=10 => 极品权重 7/140 = 5%；未 clamp 时 L=500 会 > 70%
+  assert.ok(qs[3] / tot < 0.15);
+});
+
+test('regression: ended state rejects advance/tick/applyOffline', () => {
+  const g = mk(1);
+  g.advance(300 * 3600);
+  assert.ok(g.state.ending);
+  const t0 = g.state.time.lastSeen;
+  assert.deepEqual([g.advance(10).ok, g.advance(10).reason], [false, 'ended']);
+  g.tick(1000);
+  const t = g.tick(2000);
+  assert.deepEqual([t.ok, t.reason], [false, 'ended']);
+  const o = g.applyOffline(t0 + 3600_000);
+  assert.deepEqual([o.ok, o.reason, o.seconds, o.qiGained], [false, 'ended', 0, 0]);
+});
+
+test('regression: dup treasure stones are halved on failed expedition', async () => {
+  const data = structuredClone(DATA);
+  const d = data.dungeons[0];
+  d.eventPool = [{ eventId: 'ev_test_dup', weight: 1 }];
+  data.events.push({ id: 'ev_test_dup', type: 'fortune', name: 't', text: 't', effects: [{ type: 'treasure', treasureId: 'qingmang_jian' }] });
+  const boss = data.enemies.find((e) => e.id === d.boss);
+  boss.stats = { ...boss.stats, atk: 1e6, hp: 1e9, def: 1e6 };
+  const { createGame } = await import('../../src/core/game.js');
+  const g = createGame({ data, seed: 9, now: () => 1 });
+  g.state.inventory.treasures.push('qingmang_jian');
+  g.state.techniques.equipped = { heart: null, body: null, skills: [] };
+  g.state.battleConfig.pillRules = [];
+  const price = data.treasures.find((t) => t.id === 'qingmang_jian').price;
+  const before = g.state.inventory.stones;
+  const r = g.startExpedition(d.id);
+  assert.equal(r.defeated, true);
+  assert.equal(r.dupStones, 4 * Math.floor(price * 0.5));
+  assert.equal(r.stones, Math.floor(r.dupStones * 0.5));
+  assert.equal(g.state.inventory.stones - before, r.stones);
+});
+
+test('regression: rebirth rngState follows new state seed', async () => {
+  const g = mk(1);
+  g.advance(300 * 3600);
+  assert.ok(g.rebirth().ok);
+  const { createState } = await import('../../src/core/state.js');
+  const again = createState({ seed: g.state.seed, name: g.state.player.name, legacy: g.state.legacy, now: g.state.time.lastSeen }, g.data);
+  assert.equal(g.state.rngState, again.rngState);
+});
