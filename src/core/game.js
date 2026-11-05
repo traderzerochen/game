@@ -29,8 +29,9 @@ export function createGame({ data, storage, seed, now = () => Date.now() } = {})
     if (mutating && state.ending) return { ok: false, reason: 'ended' };
     try {
       rng.setState(state.rngState);
+      const before = state;
       const r = fn();
-      state.rngState = rng.getState();
+      if (state === before) state.rngState = rng.getState();
       checkEnding(state, ctx);
       return r === undefined ? { ok: true } : r;
     } catch (e) {
@@ -77,15 +78,17 @@ export function createGame({ data, storage, seed, now = () => Date.now() } = {})
       const dt = clamp((nowMs - lastTick) / 1000, 0, TICK_MAX_SEC);
       lastTick = nowMs;
       state.time.lastSeen = nowMs;
-      if (dt <= 0 || state.ending) return { ok: true, dt: 0 };
-      return run(() => ({ ok: true, dt, ...advanceFn(state, ctx, dt) }), { mutating: false });
+      if (state.ending) return { ok: false, reason: 'ended', dt: 0, ended: state.ending.id };
+      if (dt <= 0) return { ok: true, dt: 0 };
+      return run(() => ({ ok: true, dt, ...advanceFn(state, ctx, dt) }));
     },
     advance(sec) {
-      return run(() => ({ ok: true, ...advanceFn(state, ctx, sec) }), { mutating: false });
+      return run(() => ({ ok: true, ...advanceFn(state, ctx, sec) }));
     },
     applyOffline(nowMs) {
-      const r = run(() => applyOfflineFn(state, ctx, nowMs), { mutating: false });
-      return r.ok === false ? { seconds: 0, capped: false, qiGained: 0 } : r;
+      if (state.ending) return { ok: false, reason: 'ended', seconds: 0, capped: false, qiGained: 0 };
+      const r = run(() => applyOfflineFn(state, ctx, nowMs));
+      return r.ok === false ? { ok: false, reason: r.reason, seconds: 0, capped: false, qiGained: 0 } : { ok: true, ...r };
     },
     breakthroughInfo() { return breakthroughInfo(state, ctx); },
     tribulationInfo() { return ext.tribulationInfoSafe(state, ctx); },

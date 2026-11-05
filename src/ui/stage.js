@@ -83,10 +83,14 @@ export function createStage(container, { getQuality }) {
     // 场景题签
     if (sceneKey !== 'home' && sceneLabel) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.fillStyle = withAlpha(mode === 'tribulation' ? PALETTE.paper : PALETTE.ink1, 0.8);
       ctx.font = `20px ${getComputedStyle(document.body).getPropertyValue('--font-kai') || 'serif'}`;
       ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-      ctx.fillText(`「${sceneLabel}」`, 16, 14);
+      const label = `「${sceneLabel}」`;
+      const tw = ctx.measureText(label).width;
+      ctx.fillStyle = 'rgba(243,236,220,.72)';
+      ctx.fillRect(10, 10, tw + 12, 30);
+      ctx.fillStyle = PALETTE.ink1;
+      ctx.fillText(label, 16, 14);
     }
   }
 

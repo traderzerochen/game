@@ -27,24 +27,24 @@ export function ownsTreasure(state, id) {
   return state.inventory.treasures.includes(id) || Object.values(state.treasures).includes(id);
 }
 /** 获得法宝；已拥有折算灵石。返回 {dup, stones} */
-export function giveTreasure(state, ctx, id) {
+export function giveTreasure(state, ctx, id, defer = false) {
   const t = ctx.data.byId.treasures.get(id);
   if (!t) return { dup: false, stones: 0 };
   if (ownsTreasure(state, id)) {
     const s = Math.floor(num(t.price) * 0.5);
-    addStones(state, ctx, s);
+    if (!defer) addStones(state, ctx, s);
     return { dup: true, stones: s };
   }
   state.inventory.treasures.push(id);
   ctx?.bus?.emit('item:gained', { kind: 'treasure', id, count: 1 });
   return { dup: false, stones: 0 };
 }
-export function giveTechnique(state, ctx, id) {
+export function giveTechnique(state, ctx, id, defer = false) {
   const t = ctx.data.byId.techniques.get(id);
   if (!t) return { dup: false, stones: 0 };
   if (state.techniques.owned[id]) {
     const s = Math.floor(num(t.price) * 0.5);
-    addStones(state, ctx, s);
+    if (!defer) addStones(state, ctx, s);
     return { dup: true, stones: s };
   }
   state.techniques.owned[id] = 1;

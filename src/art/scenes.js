@@ -68,7 +68,7 @@ export const SCENES = {
     name: '赤砂火峡', sky: ['#f3dfcc', '#ebcdb1'], sun: { x: 0.55, y: 0.18, r: 46, color: P.cinnabar, alpha: 0.28 }, tint: P.cinnabar,
     layers: [
       { kind: 'mountain', ink: mix(P.ink4, P.cinnabar, 0.25), y: 0.52, height: 0.36, peaks: 6, blur: 6, speed: 0.05, minTier: 'low', sharp: 2.4 },
-      { kind: 'mountain', ink: mix(P.ink2, P.ochre, 0.4), y: 0.72, height: 0.4, peaks: 5, blur: 2, speed: 0.15, minTier: 'mid', sharp: 2.6, texture: 0.6 },
+      { kind: 'mountain', ink: mix(P.ink2, P.ochre, 0.4), y: 0.8, height: 0.42, peaks: 4, blur: 2, speed: 0.15, minTier: 'mid', sharp: 1.5, texture: 0.6 },
       { kind: 'clouds', y: 0.62, thick: 0.05, speed: 0.3, minTier: 'mid', alpha: 0.5, color: '#f6e3d2' },
       { kind: 'props', speed: 0.6, minTier: 'low', items: [{ type: 'deadTree', x: 0.82, y: 0.97, size: 0.46 }, { type: 'rock', x: 0.22, y: 0.98, size: 0.18, ink: mix(P.ink1, P.cinnabar, 0.2) }] },
       { kind: 'clouds', y: 0.98, thick: 0.05, speed: 0.6, minTier: 'high', alpha: 0.45, color: '#f6e3d2' },
@@ -148,7 +148,13 @@ function buildScene(key, W, H, q) {
     const blur = T.blur ? (L.blur || 0) : 0;
     const alphaK = T.blur ? 1 : 0.85; // 低档：以透明度代替模糊
     if (L.kind === 'mountain') {
-      drawMountainLayer(g, { seed: s, width: W, total: H, y: L.y * H, height: L.height * H, ink: L.ink, blur, alpha: alphaK, peaks: L.peaks || 3, sharp: L.sharp || 1.4, texture: L.texture ?? 0.3 });
+      // 模糊用“缩小绘制再放大”实现：比 ctx.filter 快两个数量级，且各浏览器一致
+      const k = blur > 0 ? 1 / (1 + blur * 0.45) : 1;
+      const tgt = k < 1 ? makeCanvas(W * k, H * k) : c;
+      const tg = tgt.getContext('2d');
+      if (k < 1) tg.scale(tgt.width / W, tgt.height / H);
+      drawMountainLayer(tg, { seed: s, width: W, total: H, y: L.y * H, height: L.height * H, ink: L.ink, blur: 0, alpha: alphaK, peaks: L.peaks || 3, sharp: L.sharp || 1.4, texture: L.texture ?? 0.3 });
+      if (k < 1) { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(tgt, 0, 0, W, H); }
     } else if (L.kind === 'clouds') {
       drawCloudBand(g, { seed: s, width: W, y: L.y * H, thick: L.thick * H, alpha: (L.alpha ?? 0.8) * alphaK, color: L.color || '#f8f3e8', count: Math.round(W / 70) });
     } else {
@@ -185,7 +191,7 @@ function drawItem(g, it, W, H, seed, def) {
 // ---------- 环境粒子（雪、萤、余烬、落叶、雾、雨） ----------
 function makeAmbient(kind, W, H, T, seed) {
   if (!kind || kind === 'qi') return null;
-  const n = Math.round(T.particles * (kind === 'rain' ? 0.5 : 0.2));
+  const n = Math.round(T.particles * (kind === 'rain' ? 0.5 : kind === 'mist' ? 0.06 : 0.2));
   const rand = seededRandom(seed + 5);
   const ps = [];
   for (let i = 0; i < n; i++) ps.push({ x: rand() * W, y: rand() * H, v: 0.5 + rand(), r: 0.6 + rand() * 1.8, ph: rand() * Math.PI * 2 });
@@ -202,7 +208,14 @@ function drawAmbient(ctx, A, W, H, t, dt) {
       case 'embers': p.y -= dt * 22 * p.v; p.x += Math.sin(t * 2 + p.ph) * dt * 10; col = `rgba(240,120,90,${(0.4 + 0.4 * Math.sin(t * 3 + p.ph)).toFixed(2)})`; break;
       case 'fireflies': p.x += Math.cos(t * 0.7 + p.ph) * dt * 12; p.y += Math.sin(t * 0.9 + p.ph) * dt * 8; col = `rgba(220,240,160,${(0.3 + 0.5 * Math.max(0, Math.sin(t * 1.5 + p.ph))).toFixed(2)})`; r *= 1.3; break;
       case 'leaves': p.y += dt * 18 * p.v; p.x += (Math.sin(t + p.ph) * 20 - 8) * dt; col = 'rgba(154,107,63,.55)'; break;
-      case 'mist': p.x += dt * 6 * p.v; col = 'rgba(248,246,238,.25)'; r *= 18; break;
+      case 'mist': {
+        p.x += dt * 6 * p.v;
+        const R = r * 22, g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, R);
+        g.addColorStop(0, 'rgba(248,246,238,.22)'); g.addColorStop(1, 'rgba(248,246,238,0)');
+        ctx.fillStyle = g; ctx.fillRect(p.x - R, p.y - R, R * 2, R * 2);
+        if (p.x > W + R) p.x = -R;
+        continue;
+      }
       case 'rain': p.y += dt * 420 * p.v; p.x -= dt * 60; col = 'rgba(207,200,184,.35)'; break;
       default: col = 'rgba(0,0,0,0)';
     }

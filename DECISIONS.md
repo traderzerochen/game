@@ -32,3 +32,4 @@
 | D26 | 应用户要求新增 qa 队友（Sonnet），负责 tests/e2e/ 下的 Playwright 端到端测试，入口为 `npm run test:e2e`（不并入 `npm test`，因为需要构建和浏览器） | 端到端测试慢、依赖浏览器，与单元测试分开；Sonnet 足以胜任脚本化测试 |
 | D27 | 音频：master 前加 DynamicsCompressor 防爆音；battle:end 以 winner==='player' 判胜，expedition:end 以 success 或 cleared 判胜 | audio 提议，lead 批准 |
 | D28 | 应用户要求为 engine 增加队友：只加 1 名只读审查员 engine-review（Sonnet），不加开发者 | engine 的计划任务已全部完成并通过测试，再加开发者没有活干；缺的是作者之外的独立验证。修复仍由 engine 完成，以保持单一归属 |
+| D29 | engine-review 报告的 5 个问题全部判为需修：存档嵌套校验（中）、炼丹 level clamp、结局后 advance/tick/applyOffline 返回 ended、秘境失败时重复物品折算的灵石也减半、rebirth 后 rngState 同步 | 均有复现脚本，并与 DESIGN 条款相符；其中坏档导致卡死会影响玩家，优先级最高 |

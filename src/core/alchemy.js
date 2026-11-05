@@ -42,7 +42,7 @@ export function craft(state, ctx, recipeId) {
   state.inventory.stones -= num(r.stones);
   inc(state.counters, 'crafts');
   const success = ctx.rng.next() < info.rate;
-  const L = state.alchemy.level;
+  const L = clamp(Math.floor(num(state.alchemy.level, 1)), 1, 10);
   const out = { ok: true, success, pillId: r.pillId, quality: null, count: 0 };
   if (success) {
     const w = weights(L).map((x, i) => ({ q: i, weight: x.weight }));

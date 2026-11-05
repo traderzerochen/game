@@ -78,31 +78,47 @@ function needleCluster(ctx, cx, cy, r, ink, seed) {
 /** 石：不规则多边形 + 皴笔 + 留白高光 */
 export function drawRock(ctx, x, y, size, { seed = 1, ink = PALETTE.ink1, flat = 0.6 } = {}) {
   const rand = seededRandom(seed);
-  const n = 7 + Math.floor(rand() * 4);
+  const n = 6 + Math.floor(rand() * 3);
   const pts = [];
+  const lean = (rand() - 0.5) * 0.5;
   for (let i = 0; i < n; i++) {
-    const a = Math.PI + (i / (n - 1)) * Math.PI; // 上半圆
-    const r = size * (0.6 + rand() * 0.5);
-    pts.push([x + Math.cos(a) * r, y + Math.sin(a) * r * flat]);
+    const u = i / (n - 1);
+    const a = Math.PI + u * Math.PI; // 上半圆
+    const r = size * (0.78 + rand() * 0.3) * (1 - 0.15 * Math.abs(u - 0.5));
+    pts.push([x + Math.cos(a) * r + lean * size * Math.sin(u * Math.PI), y + Math.sin(a) * r * flat]);
   }
+  pts[0][1] = y; pts[n - 1][1] = y;
+  const path = () => {
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < n - 1; i++) {
+      const mx = (pts[i][0] + pts[i + 1][0]) / 2, my = (pts[i][1] + pts[i + 1][1]) / 2;
+      ctx.quadraticCurveTo(pts[i][0], pts[i][1], mx, my);
+    }
+    ctx.lineTo(pts[n - 1][0], pts[n - 1][1]);
+  };
   ctx.save();
-  const g = ctx.createLinearGradient(x - size, y - size * flat, x + size, y);
-  g.addColorStop(0, withAlpha(ink, 0.25));
-  g.addColorStop(0.6, withAlpha(ink, 0.7));
-  g.addColorStop(1, withAlpha(ink, 0.9));
+  // 体积：受光面（左上）留白，背光面（右下）积墨
+  const g = ctx.createLinearGradient(x - size * 0.8, y - size * flat, x + size * 0.6, y);
+  g.addColorStop(0, withAlpha(ink, 0.12));
+  g.addColorStop(0.5, withAlpha(ink, 0.55));
+  g.addColorStop(1, withAlpha(ink, 0.92));
   ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.moveTo(pts[0][0], y);
-  for (const p of pts) ctx.lineTo(p[0], p[1]);
-  ctx.lineTo(pts[pts.length - 1][0], y);
+  path();
   ctx.closePath();
   ctx.fill();
-  brushStroke(ctx, pts, { width: Math.max(1.5, size * 0.05), ink, dry: 0.6, seed, taper: 0.4 });
-  // 皴笔
-  for (let i = 0; i < 4 + size / 12; i++) {
-    const px = x + (rand() - 0.5) * size * 1.2;
-    const py = y - rand() * size * flat * 0.8;
-    brushStroke(ctx, [[px, py], [px + size * 0.12, py + size * 0.15]], { width: Math.max(1, size * 0.025), ink, dry: 0.4, seed: seed + i, alpha: 0.6 });
+  // 轮廓：只勾上沿
+  ctx.strokeStyle = withAlpha(ink, 0.95);
+  ctx.lineWidth = Math.max(1.2, size * 0.035);
+  ctx.lineJoin = 'round';
+  path();
+  ctx.stroke();
+  // 皴笔：沿山石走向的短笔
+  for (let i = 0; i < 3 + size / 14; i++) {
+    const k = 1 + Math.floor(rand() * (n - 2));
+    const [px, py] = pts[k];
+    const tx = px + (x - px) * (0.2 + rand() * 0.5), ty = py + (y - py) * (0.3 + rand() * 0.5);
+    brushStroke(ctx, [[px + (rand() - 0.5) * 6, py + 3], [tx, ty]], { width: Math.max(1, size * 0.03), ink, dry: 0.5, seed: seed + i, alpha: 0.55 });
   }
   ctx.restore();
 }
@@ -213,16 +229,21 @@ export function drawPavilion(ctx, x, y, size, { seed = 1, ink = PALETTE.ink1, ti
 export function drawStalactites(ctx, { seed = 1, width, y = 0, maxLen = 80, ink = PALETTE.ink1, count = 24 }) {
   const rand = seededRandom(seed);
   ctx.save();
-  ctx.fillStyle = ink;
+  const g = ctx.createLinearGradient(0, y, 0, y + maxLen);
+  g.addColorStop(0, withAlpha(ink, 0.95));
+  g.addColorStop(1, withAlpha(ink, 0.35));
+  ctx.fillStyle = g;
   ctx.beginPath();
   ctx.moveTo(0, y);
-  for (let i = 0; i <= count; i++) {
-    const x = (i / count) * width;
-    const len = maxLen * (0.15 + Math.pow(rand(), 2) * 0.85);
-    const w = width / count;
-    ctx.lineTo(x - w * 0.35, y + len * 0.15);
-    ctx.lineTo(x, y + len);
-    ctx.lineTo(x + w * 0.35, y + len * 0.15);
+  let x = 0;
+  while (x < width) {
+    const w = (width / count) * (0.5 + rand() * 1.2);
+    const len = maxLen * (0.08 + Math.pow(rand(), 2.2) * 0.92);
+    const tip = x + w * (0.35 + rand() * 0.3);
+    ctx.lineTo(x + w * 0.1, y + len * 0.12);
+    ctx.quadraticCurveTo(tip - w * 0.15, y + len * 0.6, tip, y + len);
+    ctx.quadraticCurveTo(tip + w * 0.12, y + len * 0.5, x + w * 0.9, y + len * 0.1);
+    x += w;
   }
   ctx.lineTo(width, y);
   ctx.closePath();
@@ -264,4 +285,63 @@ export function drawDeadTree(ctx, x, y, size, { seed = 1, ink = PALETTE.ink1, de
     for (let i = 0; i < k; i++) branch(ex, ey, ang + (rand() - 0.5) * 1.3, len * (0.55 + rand() * 0.2), w * 0.6, d - 1);
   };
   branch(x, y, -Math.PI / 2 + (rand() - 0.5) * 0.3, size * 0.4, size * 0.05, depth);
+}
+
+/** 丹炉（三足鼎）：鼎身、双耳、炉盖；heat 0–1 控制炉身透出的火色，t 让炉盖轻颤 */
+export function drawFurnace(ctx, x, y, size, { t = 0, heat = 0, ink = PALETTE.ink1, seed = 9 } = {}) {
+  const s = size;
+  const jig = heat > 0.6 ? Math.sin(t * 40) * s * 0.008 * heat : 0;
+  ctx.save();
+  // 足
+  ctx.fillStyle = ink;
+  for (const dx of [-0.32, 0, 0.32]) {
+    ctx.beginPath();
+    ctx.moveTo(x + dx * s - s * 0.04, y - s * 0.22);
+    ctx.lineTo(x + dx * s + s * 0.04, y - s * 0.22);
+    ctx.lineTo(x + dx * s * 1.15 + s * 0.02, y);
+    ctx.lineTo(x + dx * s * 1.15 - s * 0.03, y);
+    ctx.closePath();
+    ctx.fill();
+  }
+  // 鼎身
+  const g = ctx.createRadialGradient(x, y - s * 0.4, s * 0.05, x, y - s * 0.4, s * 0.5);
+  g.addColorStop(0, heat > 0 ? withAlpha(PALETTE.cinnabar, 0.25 + 0.6 * heat) : withAlpha(PALETTE.ink2, 0.9));
+  g.addColorStop(1, ink);
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(x - s * 0.42, y - s * 0.62);
+  ctx.quadraticCurveTo(x - s * 0.5, y - s * 0.2, x, y - s * 0.18);
+  ctx.quadraticCurveTo(x + s * 0.5, y - s * 0.2, x + s * 0.42, y - s * 0.62);
+  ctx.closePath();
+  ctx.fill();
+  brushStroke(ctx, [[x - s * 0.44, y - s * 0.62], [x + s * 0.44, y - s * 0.62]], { width: s * 0.05, ink, seed, dry: 0.2, taper: 0.2 });
+  // 纹饰（云雷纹带）
+  ctx.strokeStyle = withAlpha(PALETTE.gamboge, 0.55);
+  ctx.lineWidth = Math.max(1, s * 0.012);
+  ctx.beginPath();
+  for (let i = 0; i <= 8; i++) {
+    const px = x - s * 0.34 + (i / 8) * s * 0.68, py = y - s * 0.5;
+    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py + (i % 2 ? -s * 0.03 : 0));
+  }
+  ctx.stroke();
+  // 双耳
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = s * 0.035;
+  for (const sx of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(x + sx * s * 0.3, y - s * 0.62);
+    ctx.lineTo(x + sx * s * 0.3, y - s * 0.76);
+    ctx.lineTo(x + sx * s * 0.2, y - s * 0.76);
+    ctx.lineTo(x + sx * s * 0.2, y - s * 0.64);
+    ctx.stroke();
+  }
+  // 炉盖与宝珠
+  ctx.fillStyle = ink;
+  ctx.beginPath();
+  ctx.ellipse(x, y - s * 0.66 + jig, s * 0.36, s * 0.07, 0, Math.PI, 0);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x, y - s * 0.75 + jig, s * 0.04, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }

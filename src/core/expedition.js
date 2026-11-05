@@ -64,15 +64,15 @@ export function resolveEffect(state, ctx, eff, run) {
     }
     case 'treasure': {
       if (eff.chance != null && !rng.chance(num(eff.chance, 1))) break;
-      const r = giveTreasure(state, ctx, eff.treasureId);
+      const r = giveTreasure(state, ctx, eff.treasureId, true);
       if (r.dup) run.loot.stones += 0; else run.loot.treasures.push(eff.treasureId);
-      out.id = eff.treasureId; out.dup = r.dup; out.stones = r.stones; run.loot.dupStones += r.stones; break;
+      out.id = eff.treasureId; out.dup = r.dup; out.stones = r.stones; run.loot.dupStones += r.stones; run.loot.stones += r.stones; break;
     }
     case 'technique': {
       if (eff.chance != null && !rng.chance(num(eff.chance, 1))) break;
-      const r = giveTechnique(state, ctx, eff.techniqueId);
+      const r = giveTechnique(state, ctx, eff.techniqueId, true);
       if (!r.dup) run.loot.techniques.push(eff.techniqueId);
-      out.id = eff.techniqueId; out.dup = r.dup; out.stones = r.stones; run.loot.dupStones += r.stones; break;
+      out.id = eff.techniqueId; out.dup = r.dup; out.stones = r.stones; run.loot.dupStones += r.stones; run.loot.stones += r.stones; break;
     }
     case 'pill': {
       const n = Math.max(1, Math.floor(num(eff.count, 1)));
@@ -111,8 +111,8 @@ function fight(state, ctx, enemy, run) {
     const treasures = [];
     for (const t of d.treasures || []) {
       if (ctx.rng.chance(num(t.chance))) {
-        const r = giveTreasure(state, ctx, t.treasureId);
-        run.loot.dupStones += r.stones;
+        const r = giveTreasure(state, ctx, t.treasureId, true);
+        run.loot.dupStones += r.stones; run.loot.stones += r.stones;
         if (!r.dup) run.loot.treasures.push(t.treasureId);
         treasures.push({ treasureId: t.treasureId, dup: r.dup });
       }
@@ -188,8 +188,8 @@ export function runExpedition(state, ctx, id) {
     run.loot.stones += reward.stones;
     for (const h of cr.herbs || []) { addHerb(state, ctx, h.herbId, h.count); run.loot.herbs[h.herbId] = (run.loot.herbs[h.herbId] || 0) + num(h.count); reward.herbs.push(h); }
     if (cr.treasure && ctx.rng.chance(num(cr.treasure.chance, 1))) {
-      const r = giveTreasure(state, ctx, cr.treasure.treasureId);
-      run.loot.dupStones += r.stones;
+      const r = giveTreasure(state, ctx, cr.treasure.treasureId, true);
+      run.loot.dupStones += r.stones; run.loot.stones += r.stones;
       if (!r.dup) run.loot.treasures.push(cr.treasure.treasureId);
       reward.treasure = { treasureId: cr.treasure.treasureId, dup: r.dup };
     }
